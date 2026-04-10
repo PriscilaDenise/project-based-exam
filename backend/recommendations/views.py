@@ -35,10 +35,11 @@ def personalized_recommendations(request):
 def because_you_watched(request):
     """GET /api/recommendations/because-you-watched/"""
     data = engine.get_because_you_watched(request.user)
-    result = {}
-    for title, movies in data.items():
-        result[title] = TMDBMovieSerializer(movies, many=True).data
-    return Response(result)
+    grouped_results = {
+        title: TMDBMovieSerializer(movies, many=True).data
+        for title, movies in data.items()
+}
+    return Response(grouped_results)
 
 
 
