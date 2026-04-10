@@ -245,3 +245,50 @@ export default function TimeMachinePage() {
                     </div>
                   )}
 
+                   {/* Era Highlights */}
+                  <div className="grid gap-4">
+                    <HighlightItem icon={<Trophy className="w-4 h-4" />} label="Year titan" movie={capsule.categories.titan} />
+                    <HighlightItem icon={<Star className="w-4 h-4" />} label="Critics' Choice" movie={capsule.categories.critics_choice} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Discovery Grid */}
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-3xl font-bold font-display">The {selectedYear} Retrospective</h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                  {capsule.top_list.map((movie: any) => (
+                    <MovieCard key={movie.id} movie={movie} />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function HighlightItem({ icon, label, movie }: { icon: React.ReactNode, label: string, movie: any }) {
+  if (!movie) return null;
+  return (
+    <div className="group relative glass-card rounded-2xl p-4 border border-white/5 hover:border-white/20 transition-all">
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-14 rounded-lg bg-surface-1 overflow-hidden flex-shrink-0">
+          <img src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`} className="w-full h-full object-cover" alt={movie.title} />
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-gold text-[10px] font-bold uppercase tracking-wider">
+            {icon} <span>{label}</span>
+          </div>
+          <h4 className="text-sm font-bold truncate text-white">{movie.title}</h4>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
