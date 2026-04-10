@@ -35,6 +35,7 @@ def personalized_recommendations(request):
 def because_you_watched(request):
     """GET /api/recommendations/because-you-watched/"""
     data = engine.get_because_you_watched(request.user)
+    # use dictionary comprehension for cleaner response building
     grouped_results = {
         title: TMDBMovieSerializer(movies, many=True).data
         for title, movies in data.items()
@@ -104,9 +105,7 @@ def dashboard_stats(request):
     GET /api/recommendations/dashboard/
     Returns aggregated stats for the user's dashboard.
     """
-    from collections import Counter
-    from django.db.models import Count, Avg
-    from django.db.models.functions import TruncDate
+
 
     user = request.user
 
