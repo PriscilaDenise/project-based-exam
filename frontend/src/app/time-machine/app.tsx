@@ -174,3 +174,21 @@ export default function TimeMachinePage() {
               transition={{ duration: 0.5 }}
               className="space-y-16"
             >
+
+                              {/* Primary Year Overview */}
+              <div className="grid lg:grid-cols-12 gap-10">
+                <div className="lg:col-span-8 space-y-8">
+                  <div className="glass-card rounded-[2rem] p-10 relative overflow-hidden group">
+                    <div className={`absolute top-0 right-0 px-8 py-3 rounded-bl-3xl bg-gradient-to-r ${activeEra.color} text-surface-0 text-xs font-black uppercase tracking-widest`}>
+                      {activeEra.label}
+                    </div>
+                    <div className="space-y-6">
+                      <h2 className="text-4xl md:text-5xl font-bold font-display leading-[1.1]">
+                        Cinematic <span className={activeEra.accent}>Briefing</span>
+                      </h2>
+                      <p className="text-xl md:text-2xl text-white/80 leading-relaxed font-light italic">
+                        "{capsule.briefing}"
+                      </p>
+                    </div>
+                  </div>
+
