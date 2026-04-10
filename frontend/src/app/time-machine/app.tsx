@@ -192,3 +192,30 @@ export default function TimeMachinePage() {
                     </div>
                   </div>
 
+                                    {/* Iconic Faces of the Year */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 text-white/30 uppercase text-[10px] font-bold tracking-[0.2em] ml-2">
+                       <UserIcon className="w-3.5 h-3.5" />
+                       <span>Epoch Icons</span>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
+                      {capsule.icons.map((person: any, i: number) => (
+                        <div key={i} className="flex-shrink-0 group cursor-default">
+                          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/5 group-hover:border-gold transition-colors mb-2">
+                            <img 
+                              src={person.profile_path ? `https://image.tmdb.org/t/p/w185${person.profile_path}` : 'https://via.placeholder.com/185x185?text=No+Photo'}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              alt={person.name}
+                            />
+                          </div>
+                          <p className="text-center text-[10px] font-bold text-white/40 group-hover:text-white transition-colors uppercase truncate w-24">
+                            {person.name}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-4 space-y-6"></div>
+
