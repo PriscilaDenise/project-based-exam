@@ -15,6 +15,9 @@ from movies.serializers import TMDBMovieSerializer
 
 engine = RecommendationEngine()
 
+# =======================================================
+# Recommendation Endpoints
+# =====================================================
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -62,6 +65,9 @@ def track_interaction(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+#=====================================================
+# Watchlist ViewSet
+# =====================================================
 class WatchlistViewSet(viewsets.ModelViewSet):
     """User's watchlist CRUD."""
     serializer_class = WatchlistSerializer
@@ -83,7 +89,9 @@ class WatchlistViewSet(viewsets.ModelViewSet):
         return Response(WatchlistSerializer(item).data)
 
 
-### dashboard stats
+# ==============================================================================
+# Dashboard Endpoints
+# ============================================================================
 
 from .services.dashboard import DashboardService
 
