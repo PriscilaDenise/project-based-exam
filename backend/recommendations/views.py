@@ -13,6 +13,7 @@ from .serializers import (
 from .services.engine import RecommendationEngine
 from movies.serializers import TMDBMovieSerializer
 
+# Recommendation engine instance
 engine = RecommendationEngine()
 
 # =======================================================
