@@ -37,7 +37,7 @@ export default function TimeMachinePage() {
     return { ...era, fxClass };
   };
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchCapsule = async (year: number) => {
       if (cache[year]) {
         setCapsule(cache[year]);
@@ -70,7 +70,7 @@ export default function TimeMachinePage() {
   const activeEra = getEra(selectedYear);
   const titan = capsule?.categories?.titan;
 
-    return (
+  return (
     <div className={`min-h-screen pt-24 pb-20 transition-all duration-1000 bg-surface-0 overflow-hidden`}>
       {/* Immersive Background Layer */}
       <AnimatePresence mode="wait">
@@ -138,7 +138,6 @@ export default function TimeMachinePage() {
           </div>
         </div>
 
-
         {/* Dynamic Cultural Tape (Ticker) */}
         {!loading && capsule && (
           <div className="mb-12 border-y border-white/5 py-3 overflow-hidden group">
@@ -174,8 +173,7 @@ export default function TimeMachinePage() {
               transition={{ duration: 0.5 }}
               className="space-y-16"
             >
-
-                              {/* Primary Year Overview */}
+              {/* Primary Year Overview */}
               <div className="grid lg:grid-cols-12 gap-10">
                 <div className="lg:col-span-8 space-y-8">
                   <div className="glass-card rounded-[2rem] p-10 relative overflow-hidden group">
@@ -192,7 +190,7 @@ export default function TimeMachinePage() {
                     </div>
                   </div>
 
-                                    {/* Iconic Faces of the Year */}
+                  {/* Iconic Faces of the Year */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 text-white/30 uppercase text-[10px] font-bold tracking-[0.2em] ml-2">
                        <UserIcon className="w-3.5 h-3.5" />
@@ -217,9 +215,8 @@ export default function TimeMachinePage() {
                   </div>
                 </div>
 
-                <div className="lg:col-span-4 space-y-6"></div>
-
-                           {/* Oscars Spotlight */}
+                <div className="lg:col-span-4 space-y-6">
+                  {/* Oscars Spotlight */}
                   {capsule.oscar_winner && (
                     <div className="relative glass-card rounded-3xl p-6 border-gold/20 bg-gold/5 group hover:bg-gold/10 transition-all duration-500 overflow-hidden">
                       <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -245,7 +242,7 @@ export default function TimeMachinePage() {
                     </div>
                   )}
 
-                   {/* Era Highlights */}
+                  {/* Era Highlights */}
                   <div className="grid gap-4">
                     <HighlightItem icon={<Trophy className="w-4 h-4" />} label="Year titan" movie={capsule.categories.titan} />
                     <HighlightItem icon={<Star className="w-4 h-4" />} label="Critics' Choice" movie={capsule.categories.critics_choice} />
@@ -290,5 +287,3 @@ function HighlightItem({ icon, label, movie }: { icon: React.ReactNode, label: s
     </div>
   );
 }
-
-
