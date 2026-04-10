@@ -137,3 +137,40 @@ export default function TimeMachinePage() {
             </div>
           </div>
         </div>
+
+
+        {/* Dynamic Cultural Tape (Ticker) */}
+        {!loading && capsule && (
+          <div className="mb-12 border-y border-white/5 py-3 overflow-hidden group">
+            <motion.div 
+              initial={{ x: "100%" }}
+              animate={{ x: "-100%" }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              className="flex items-center gap-16 whitespace-nowrap"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/40">
+                <Globe className="w-3.5 h-3.5 text-gold" />
+                <span>Historical Context :</span>
+              </div>
+              {capsule.events.map((evt: string, i: number) => (
+                <span key={i} className="text-sm font-medium text-white/60">• {evt}</span>
+              ))}
+            </motion.div>
+          </div>
+        )}
+
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <div className="h-[500px] flex flex-col items-center justify-center gap-4">
+              <div className={`w-12 h-12 border-4 border-t-transparent ${activeEra.accent.replace("text", "border")} rounded-full animate-spin`} />
+              <p className="text-white/40 animate-pulse font-display italic">Syncing Temporal Coordinates...</p>
+            </div>
+          ) : capsule && (
+            <motion.div
+              key={selectedYear}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-16"
+            >
