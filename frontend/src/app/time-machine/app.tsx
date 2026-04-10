@@ -219,3 +219,29 @@ export default function TimeMachinePage() {
 
                 <div className="lg:col-span-4 space-y-6"></div>
 
+                           {/* Oscars Spotlight */}
+                  {capsule.oscar_winner && (
+                    <div className="relative glass-card rounded-3xl p-6 border-gold/20 bg-gold/5 group hover:bg-gold/10 transition-all duration-500 overflow-hidden">
+                      <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Award className="w-32 h-32 text-gold" />
+                      </div>
+                      <div className="flex items-center gap-2 text-gold font-bold text-[10px] uppercase tracking-widest mb-4">
+                        <Award className="w-4 h-4" />
+                        <span>Best Picture Winner</span>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="w-20 h-28 rounded-xl overflow-hidden flex-shrink-0 shadow-2xl">
+                          <img 
+                            src={`https://image.tmdb.org/t/p/w185${capsule.oscar_winner.poster_path}`} 
+                            className="w-full h-full object-cover" 
+                            alt="Oscar Winner" 
+                          />
+                        </div>
+                        <div className="flex flex-col justify-center min-w-0">
+                          <h3 className="text-lg font-bold text-white leading-tight">{capsule.oscar_winner.title}</h3>
+                          <p className="text-xs text-white/40 mt-1 uppercase font-bold tracking-tighter">Director Highlight</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
