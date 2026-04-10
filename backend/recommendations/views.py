@@ -85,6 +85,8 @@ class WatchlistViewSet(viewsets.ModelViewSet):
 
 ### dashboard stats
 
+from .services.dashboard import DashboardService
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def dashboard_stats(request):
