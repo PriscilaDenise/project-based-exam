@@ -36,3 +36,36 @@ export default function TimeMachinePage() {
     else if (era.id === "digital") fxClass = "era-fx-digital";
     return { ...era, fxClass };
   };
+
+    useEffect(() => {
+    const fetchCapsule = async (year: number) => {
+      if (cache[year]) {
+        setCapsule(cache[year]);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await moviesAPI.getTimeCapsule(year);
+        setCache(prev => ({ ...prev, [year]: data }));
+        setCapsule(data);
+      } catch (err) {
+        console.error("Failed to fetch capsule:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCapsule(selectedYear);
+    
+    // Prefetching adjacent years
+    [selectedYear - 1, selectedYear + 1].forEach(yr => {
+      if (yr >= 1888 && yr <= 2024 && !cache[yr]) {
+        moviesAPI.getTimeCapsule(yr).then(data => {
+          setCache(prev => ({ ...prev, [yr]: data }));
+        });
+      }
+    });
+  }, [selectedYear]);
+
+  const activeEra = getEra(selectedYear);
+  const titan = capsule?.categories?.titan;
