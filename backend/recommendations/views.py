@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import UserMovieInteraction, UserGenrePreference, Watchlist
@@ -13,8 +13,12 @@ from .serializers import (
 from .services.engine import RecommendationEngine
 from movies.serializers import TMDBMovieSerializer
 
+# Recommendation engine instance
 engine = RecommendationEngine()
 
+# =======================================================
+# Recommendation Endpoints
+# =====================================================
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -22,8 +26,8 @@ def personalized_recommendations(request):
     """GET /api/recommendations/for-you/ → personalized picks."""
     page = int(request.query_params.get("page", 1))
     movies = engine.get_recommendations(request.user, page=page)
-    serializer = TMDBMovieSerializer(movies, many=True)
-    return Response({"results": serializer.data})
+    # Inline serializer to remove unnecessary temporary variable
+    return Response({"results": TMDBMovieSerializer(movies, many=True).data})
 
 
 @api_view(["GET"])
@@ -31,10 +35,13 @@ def personalized_recommendations(request):
 def because_you_watched(request):
     """GET /api/recommendations/because-you-watched/"""
     data = engine.get_because_you_watched(request.user)
-    result = {}
-    for title, movies in data.items():
-        result[title] = TMDBMovieSerializer(movies, many=True).data
-    return Response(result)
+    # use dictionary comprehension for cleaner response building
+    grouped_results = {
+        title: TMDBMovieSerializer(movies, many=True).data
+        for title, movies in data.items()
+}
+    return Response(grouped_results)
+
 
 
 @api_view(["GET"])
@@ -44,9 +51,8 @@ def genre_preferences(request):
     # Recomputing preferences
     engine.compute_genre_preferences(request.user)
     prefs = UserGenrePreference.objects.filter(user=request.user)
-    serializer = UserGenrePreferenceSerializer(prefs, many=True)
-    return Response(serializer.data)
-
+    # Inline serializer to remove unnecessary temporary variable
+    return Response(UserGenrePreferenceSerializer(prefs, many=True).data)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -62,6 +68,9 @@ def track_interaction(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+#=====================================================
+# Watchlist ViewSet
+# =====================================================
 class WatchlistViewSet(viewsets.ModelViewSet):
     """User's watchlist CRUD."""
     serializer_class = WatchlistSerializer
@@ -83,7 +92,11 @@ class WatchlistViewSet(viewsets.ModelViewSet):
         return Response(WatchlistSerializer(item).data)
 
 
-### dashboard stats
+# ==============================================================================
+# Dashboard Endpoints
+# ============================================================================
+
+from .services.dashboard import DashboardService
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -92,9 +105,7 @@ def dashboard_stats(request):
     GET /api/recommendations/dashboard/
     Returns aggregated stats for the user's dashboard.
     """
-    from collections import Counter
-    from django.db.models import Count, Avg
-    from django.db.models.functions import TruncDate
+
 
     user = request.user
 
