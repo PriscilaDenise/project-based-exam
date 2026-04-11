@@ -92,3 +92,18 @@ class DashboardService:
             {"date": str(d["date"]), "count": d["count"]}
             for d in daily_activity
         ]
+    
+    def get_recent_activity(self) -> list:
+        """Fetches the 10 most recent interactions."""
+        recent = self.interactions.order_by("-created_at")[:10]
+        return UserMovieInteractionSerializer(recent, many=True).data
+
+    def get_all_dashboard_data(self) -> dict:
+        """Aggregates all dashboard data components into a single dictionary payload."""
+        return {
+            "summary": self.get_summary_stats(),
+            "genre_distribution": self.get_genre_distribution(),
+            "preference_scores": self.get_preference_scores(),
+            "activity_timeline": self.get_activity_timeline(),
+            "recent_activity": self.get_recent_activity(),
+        }
