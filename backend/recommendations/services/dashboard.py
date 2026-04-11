@@ -45,3 +45,24 @@ class DashboardService:
             "watchlist_watched": watchlist_watched,
             "average_rating": round(avg_rating, 1) if avg_rating else None,
         }
+    
+    def get_genre_distribution(self) -> list:
+        """Calculates the distribution of genres based on recent positive interactions."""
+        genre_counter = Counter()
+        positive_interactions = self.interactions.filter(
+            interaction_type__in=["like", "watched", "watchlist"]
+        )
+        
+        for interaction in positive_interactions:
+            for gid in interaction.genre_ids:
+                genre_counter[gid] += 1
+
+        genre_distribution = []
+        for gid, count in genre_counter.most_common(10):
+            try:
+                genre = Genre.objects.get(tmdb_id=gid)
+                genre_distribution.append({"name": genre.name, "tmdb_id": gid, "count": count})
+            except Genre.DoesNotExist:
+                genre_distribution.append({"name": f"Genre {gid}", "tmdb_id": gid, "count": count})
+                
+        return genre_distribution
