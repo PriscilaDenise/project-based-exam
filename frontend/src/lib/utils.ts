@@ -22,7 +22,9 @@ export function formatCurrency(amount: number): string {
 
 export function formatDate(dateStr: string): string {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -36,14 +38,19 @@ export function ratingColor(rating: number): string {
   return "text-red-400";
 }
 
-export function posterUrl(path: string | null, size: "w185" | "w500" | "original" = "w500"): string {
+export function posterUrl(path: string | null): string {
   if (!path) return "/placeholder-poster.svg";
   if (path.startsWith("http")) return path;
-  return `https://image.tmdb.org/t/p/${size}${path}`;
+  return `https://image.tmdb.org/t/p/w500${path}`;
 }
 
 export function backdropUrl(path: string | null): string {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   return `https://image.tmdb.org/t/p/w1280${path}`;
+}
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + "...";
 }
