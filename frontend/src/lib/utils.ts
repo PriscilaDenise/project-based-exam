@@ -20,15 +20,32 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string, options?: { format?: 'short' | 'long' | 'numeric' }): string {
   if (!dateStr) return "";
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  
+  const format = options?.format || 'long';
+  switch (format) {
+    case 'short':
+      return date.toLocaleDateString("en-US", {
+        year: "2-digit",
+        month: "short",
+        day: "numeric",
+      });
+    case 'numeric':
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    default:
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+  }
 }
 
 export function ratingColor(rating: number): string {
