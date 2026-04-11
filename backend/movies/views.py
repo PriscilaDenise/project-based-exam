@@ -57,3 +57,25 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
             movie.save(update_fields=["wikipedia_summary", "wikipedia_url"])
 
         return Response(wiki_data)
+
+## Genre ViewSet
+class GenreViewSet(viewsets.ReadOnlyModelViewSet):
+    """Genres API."""
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = [AllowAny]
+    lookup_field = "slug"
+
+    @action(detail=True, methods=["get"])
+    def movies(self, request, slug=None):
+        """GET /api/movies/genres/{slug}/movies/ → movies in this genre."""
+        genre = self.get_object()
+        page = int(request.query_params.get("page", 1))
+        sort = request.query_params.get("sort", "popularity.desc")
+
+        # Try local DB first
+        local_movies = Movie.objects.filter(genres=genre).order_by("-popularity")
+        if local_movies.count() >= 20:
+            paginator = self.paginate_queryset(local_movies)
+            serializer = MovieCompactSerializer(paginator, many=True)
+            return self.get_paginated_response(serializer.data)
