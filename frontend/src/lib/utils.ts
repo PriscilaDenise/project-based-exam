@@ -78,3 +78,12 @@ export function calculateAverageRating(ratings: number[]): number {
   const sum = ratings.reduce((acc, rating) => acc + rating, 0);
   return Math.round((sum / ratings.length) * 10) / 10;
 }
+
+export function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
