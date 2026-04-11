@@ -79,3 +79,14 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
             paginator = self.paginate_queryset(local_movies)
             serializer = MovieCompactSerializer(paginator, many=True)
             return self.get_paginated_response(serializer.data)
+
+       # Fallback to TMDB API
+        data = tmdb.get_movies_by_genre(genre.tmdb_id, page=page, sort_by=sort)
+        results = data.get("results", [])
+        serializer = TMDBMovieSerializer(results, many=True)
+        return Response({
+            "results": serializer.data,
+            "total_pages": data.get("total_pages", 1),
+            "total_results": data.get("total_results", 0),
+            "page": page,
+        })
