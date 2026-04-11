@@ -1,0 +1,9 @@
+import { formatRuntime, formatCurrency, ratingColor, posterUrl } from './utils';
+
+describe('Utility Functions', () => {
+  describe('formatRuntime', () => {
+    it('formats minutes into hours and minutes', () => {
+      expect(formatRuntime(135)).toBe('2h 15m');
+      expect(formatRuntime(45)).toBe('45m');
+      expect(formatRuntime(120)).toBe('2h 0m');
+    });
