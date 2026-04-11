@@ -18,3 +18,8 @@ describe('Utility Functions', () => {
     it('formats numbers to USD currency standard', () => {
       expect(formatCurrency(1500000)).toBe('$1,500,000');
     });
+
+    it('returns an em dash for 0 amount', () => {
+      expect(formatCurrency(0)).toBe('—');
+    });
+  });
