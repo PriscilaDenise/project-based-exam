@@ -42,3 +42,13 @@ class MoviesModelsTests(TestCase):
         self.assertIsNone(movie.poster_url)
         self.assertIsNone(movie.backdrop_url)
         self.assertIsNone(movie.trailer_url)
+
+    def test_watch_provider_str(self):
+        """Test the string representation of a WatchProvider."""
+        movie = Movie.objects.create(tmdb_id=1, title="Test Movie")
+        provider = WatchProvider(
+            movie=movie,
+            provider_name="Netflix",
+            provider_type=WatchProvider.ProviderType.STREAM
+        )
+        self.assertEqual(str(provider), "Netflix (stream) - Test Movie")
