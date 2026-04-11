@@ -27,3 +27,8 @@ describe('Utility Functions', () => {
   describe('ratingColor', () => {
     it('returns the correct color class based on rating', () => {
       expect(ratingColor(8.5)).toBe('text-emerald-400');
+      expect(ratingColor(6.5)).toBe('text-amber-300');
+      expect(ratingColor(5.0)).toBe('text-orange-400');
+      expect(ratingColor(2.0)).toBe('text-red-400');
+    });
+  });
