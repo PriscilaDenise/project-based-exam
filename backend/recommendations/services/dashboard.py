@@ -66,3 +66,13 @@ class DashboardService:
                 genre_distribution.append({"name": f"Genre {gid}", "tmdb_id": gid, "count": count})
                 
         return genre_distribution
+    
+    def get_preference_scores(self) -> list:
+        """Retrieves and computes genre preference scores."""
+        self.engine.compute_genre_preferences(self.user)
+        prefs = UserGenrePreference.objects.filter(user=self.user).order_by("-weight")[:10]
+        
+        return [
+            {"name": p.genre_name, "weight": round(p.weight, 1), "count": p.interaction_count}
+            for p in prefs
+        ]
