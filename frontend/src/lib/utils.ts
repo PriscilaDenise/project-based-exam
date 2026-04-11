@@ -49,7 +49,8 @@ export function formatDate(dateStr: string, options?: { format?: 'short' | 'long
 }
 
 export function ratingColor(rating: number): string {
-  if (rating >= 8) return "text-emerald-400";
+  if (rating >= 9) return "text-emerald-400";
+  if (rating >= 7) return "text-green-400";
   if (rating >= 6) return "text-amber-300";
   if (rating >= 4) return "text-orange-400";
   return "text-red-400";
