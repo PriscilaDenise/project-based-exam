@@ -13,3 +13,8 @@ describe('Utility Functions', () => {
       expect(formatRuntime(0)).toBe('');
     });
   });
+
+  describe('formatCurrency', () => {
+    it('formats numbers to USD currency standard', () => {
+      expect(formatCurrency(1500000)).toBe('$1,500,000');
+    });
