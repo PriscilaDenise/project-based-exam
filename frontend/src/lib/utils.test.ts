@@ -23,3 +23,7 @@ describe('Utility Functions', () => {
       expect(formatCurrency(0)).toBe('—');
     });
   });
+
+  describe('ratingColor', () => {
+    it('returns the correct color class based on rating', () => {
+      expect(ratingColor(8.5)).toBe('text-emerald-400');
