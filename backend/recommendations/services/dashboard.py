@@ -76,3 +76,19 @@ class DashboardService:
             {"name": p.genre_name, "weight": round(p.weight, 1), "count": p.interaction_count}
             for p in prefs
         ]
+    
+    def get_activity_timeline(self) -> list:
+        """Generates a daily activity timeline for the last 30 days."""
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        daily_activity = (
+            self.interactions.filter(created_at__gte=thirty_days_ago)
+            .annotate(date=TruncDate("created_at"))
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        )
+        
+        return [
+            {"date": str(d["date"]), "count": d["count"]}
+            for d in daily_activity
+        ]
