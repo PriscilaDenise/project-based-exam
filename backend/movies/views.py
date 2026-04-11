@@ -90,3 +90,31 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
             "total_results": data.get("total_results", 0),
             "page": page,
         })
+
+
+
+## Person ViewSet
+
+class PersonViewSet(viewsets.ReadOnlyModelViewSet):
+    """People (directors, actors) API."""
+    queryset = Person.objects.all()
+    permission_classes = [AllowAny]
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return PersonDetailSerializer
+        return PersonCompactSerializer
+
+    @action(detail=True, methods=["get"])
+    def enrich(self, request, pk=None):
+        person = self.get_object()
+        data = tmdb.get_person_details(person.tmdb_id)
+
+        if data:
+            person.biography = data.get("biography", "")
+            person.birthday = data.get("birthday") or None
+            person.place_of_birth = data.get("place_of_birth", "")
+            person.save()
+
+        serializer = PersonDetailSerializer(person)
+        return Response(serializer.data)
