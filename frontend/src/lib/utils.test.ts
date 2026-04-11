@@ -7,3 +7,9 @@ describe('Utility Functions', () => {
       expect(formatRuntime(45)).toBe('45m');
       expect(formatRuntime(120)).toBe('2h 0m');
     });
+
+    it('returns empty string for null or 0', () => {
+      expect(formatRuntime(null)).toBe('');
+      expect(formatRuntime(0)).toBe('');
+    });
+  });
