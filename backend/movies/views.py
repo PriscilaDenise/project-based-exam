@@ -162,3 +162,25 @@ def trending_movies(request):
         "total_pages": data.get("total_pages", 1),
         "page": page,
     })
+    
+    
+    @api_view(["GET"])
+@permission_classes([AllowAny])
+def now_playing(request):
+    p = int(request.query_params.get("page", 1))
+    d = tmdb.get_now_playing(page=p)
+    r = d.get("results", [])
+    s = TMDBMovieSerializer(r, many=True)
+    x = {"results": s.data, "page": p}
+    return Response(x)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def top_rated(request):
+    p = int(request.query_params.get("page", 1))
+    d = tmdb.get_top_rated_movies(page=p)
+    r = d.get("results", [])
+    s = TMDBMovieSerializer(r, many=True)
+    x = {"results": s.data, "page": p}
+    return Response(x)
