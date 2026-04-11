@@ -32,3 +32,8 @@ describe('Utility Functions', () => {
       expect(ratingColor(2.0)).toBe('text-red-400');
     });
   });
+
+  describe('posterUrl', () => {
+    it('constructs a TMDB image url correctly', () => {
+      expect(posterUrl('/test.jpg', 'w185')).toBe('https://image.tmdb.org/t/p/w185/test.jpg');
+    });
