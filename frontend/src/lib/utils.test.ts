@@ -37,3 +37,12 @@ describe('Utility Functions', () => {
     it('constructs a TMDB image url correctly', () => {
       expect(posterUrl('/test.jpg', 'w185')).toBe('https://image.tmdb.org/t/p/w185/test.jpg');
     });
+    it('returns the path directly if it is an external http link', () => {
+      expect(posterUrl('https://example.com/test.jpg')).toBe('https://example.com/test.jpg');
+    });
+
+    it('returns placeholder if path is null', () => {
+      expect(posterUrl(null)).toBe('/placeholder-poster.svg');
+    });
+  });
+});
