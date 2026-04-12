@@ -378,3 +378,10 @@ def discover_filtered(request):
     data = tmdb.discover_movies(**params)
     results = data.get("results", [])
     serializer = TMDBMovieSerializer(results, many=True)
+    
+        return Response({
+        "results": serializer.data,
+        "total_pages": data.get("total_pages", 1),
+        "total_results": data.get("total_results", 0),
+        "page": page,
+    })
