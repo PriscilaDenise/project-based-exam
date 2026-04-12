@@ -39,3 +39,48 @@ class TimeMachineService:
         2017: "Green Book", 2018: "Parasite", 2019: "Nomadland", 2020: "CODA",
         2021: "Everything Everywhere All at Once", 2022: "Oppenheimer"
     }
+    
+     GLOBAL_EVENTS = {
+        1927: ["Charles Lindbergh completes first solo flight across Atlantic", "Work begins on Mount Rushmore"],
+        1939: ["World War II begins in Europe", "First commercial helicopter flight"],
+        1945: ["World War II ends", "World Bank and IMF created"],
+        1969: ["Apollo 11: Man walks on the Moon", "Woodstock festival defines a generation"],
+        1977: ["First Apple II personal computers go on sale", "Elvis Presley passes away"],
+        1989: ["Berlin Wall falls", "World Wide Web proposal is written by Tim Berners-Lee"],
+        1994: ["Nelson Mandela inaugurated as President of South Africa", "Channel Tunnel opens"],
+        1999: ["Introduction of the Euro currency", "Y2K anxiety grips the world"],
+        2001: ["Launch of Wikipedia", "First tourist in space"],
+        2008: ["Barack Obama elected first Black US President", "Global financial crisis"],
+        2023: ["Global population hits 8 billion", "Rise of generative AI transforms industry"]
+    }
+
+    def __init__(self):
+        self.tmdb = TMDBService()
+
+    def get_year_capsule(self, year: int) -> dict:
+        """Fetch and categorize enriched movies for a specific year."""
+        
+        popular_data = self.tmdb.discover_movies(
+            primary_release_year=year,
+            sort_by="popularity.desc",
+            page=1
+        )
+        popular_results = popular_data.get("results", [])
+
+        titan = popular_results[0] if popular_results else None
+        
+        critics_data = self.tmdb.discover_movies(
+            primary_release_year=year, sort_by="vote_average.desc", **{"vote_count.gte": 500}
+        )
+        critics = critics_data.get("results", [None])[0]
+
+        # Fetch Oscar Winner
+        oscar_movie = None
+        oscar_title = self.OSCAR_BEST_PICTURES.get(year)
+        if oscar_title:
+            search = self.tmdb.search_movies(oscar_title)
+            results = search.get("results", [])
+            for r in results:
+                if str(year) in r.get("release_date", ""):
+                    oscar_movie = r
+                    break
