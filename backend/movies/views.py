@@ -371,3 +371,6 @@ def discover_filtered(request):
          language = request.query_params.get("language")
     if language:
         params["with_original_language"] = language
+        
+         sort = request.query_params.get("sort", "popularity.desc")
+    params["sort_by"] = sort
