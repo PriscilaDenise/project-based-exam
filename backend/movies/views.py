@@ -257,3 +257,41 @@ MOOD_MAP = {
         "vote_count_gte": 150,
         "vote_average_gte": 7.0,
     },
+    "edge-of-seat": {
+        "label": "Edge of Your Seat",
+        "description": "Suspenseful films that keep you guessing",
+        "genres": "53,9648,27",  # Thriller, Mystery, Horror
+        "sort_by": "popularity.desc",
+        "vote_count_gte": 200,
+    },
+    "epic-adventure": {
+        "label": "Epic Adventure",
+        "description": "Grand journeys and sweeping tales of heroism",
+        "genres": "12,14,878",  # Adventure, Fantasy, Sci-Fi
+        "sort_by": "popularity.desc",
+        "vote_count_gte": 300,
+    },
+    "cry-it-out": {
+        "label": "Cry It Out",
+        "description": "Emotional dramas that hit you right in the feels",
+        "genres": "18,10749,10402",  # Drama, Romance, Music
+        "sort_by": "vote_average.desc",
+        "vote_count_gte": 200,
+        "vote_average_gte": 7.5,
+    },
+    "family-fun": {
+        "label": "Family Fun",
+        "description": "Movies the whole family can enjoy together",
+        "genres": "16,10751,12",  # Animation, Family, Adventure
+        "sort_by": "popularity.desc",
+        "vote_count_gte": 200,
+    },
+    "documentary-deep-dive": {
+        "label": "Documentary Deep Dive",
+        "description": "Real stories that expand your worldview",
+        "genres": "99",  # Documentary
+        "sort_by": "vote_average.desc",
+        "vote_count_gte": 100,
+        "vote_average_gte": 7.0,
+    },
+}
