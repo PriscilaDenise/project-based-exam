@@ -295,3 +295,43 @@ MOOD_MAP = {
         "vote_average_gte": 7.0,
     },
 }
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def mood_list(request):
+    moods = [
+        {"slug": slug, "label": m["label"], "description": m["description"]}
+        for slug, m in MOOD_MAP.items()
+    ]
+    return Response(moods)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def mood_movies(request, mood_slug):
+    mood = MOOD_MAP.get(mood_slug)
+    if not mood:
+        return Response({"error": "Unknown mood"}, status=404)
+
+    page = int(request.query_params.get("page", 1))
+    params = {
+        "with_genres": mood["genres"],
+        "sort_by": mood.get("sort_by", "popularity.desc"),
+        "page": page,
+    }
+    if "vote_count_gte" in mood:
+        params["vote_count.gte"] = mood["vote_count_gte"]
+    if "vote_average_gte" in mood:
+        params["vote_average.gte"] = mood["vote_average_gte"]
+
+    data = tmdb.discover_movies(**params)
+    results = data.get("results", [])
+    serializer = TMDBMovieSerializer(results, many=True)
+
+    return Response({
+        "mood": {"slug": mood_slug, "label": mood["label"], "description": mood["description"]},
+        "results": serializer.data,
+        "total_pages": data.get("total_pages", 1),
+        "page": page,
+    })
