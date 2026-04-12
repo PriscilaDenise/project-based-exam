@@ -84,3 +84,63 @@ class TimeMachineService:
                 if str(year) in r.get("release_date", ""):
                     oscar_movie = r
                     break
+                
+                  # Get Icons
+        icons = self._get_icons_of_year(popular_results[:5])
+
+        return {
+            "year": year,
+            "briefing": self._generate_briefing(year, titan, critics),
+            "oscar_winner": oscar_movie,
+            "events": self.GLOBAL_EVENTS.get(year, [f"A pivotal year in the history of cinema and the arts."]),
+            "icons": icons,
+            "categories": {
+                "titan": titan,
+                "critics_choice": critics,
+            },
+            "top_list": popular_results[:12]
+        }
+
+    def _get_icons_of_year(self, top_movies: list) -> list:
+        """Identify top talent from the highest-profile movies of the year."""
+        icons_map = {}
+        for m in top_movies:
+            if not m: continue
+            credits = self.tmdb.get_movie_credits(m["id"])
+            # Top 3 cast members
+            for cast in credits.get("cast", [])[:2]:
+                pid = cast["id"]
+                if pid not in icons_map:
+                    icons_map[pid] = {"name": cast["name"], "profile_path": cast["profile_path"], "score": 0}
+                icons_map[pid]["score"] += 1
+            # Director
+            for crew in credits.get("crew", []):
+                if crew["job"] == "Director":
+                    pid = crew["id"]
+                    if pid not in icons_map:
+                        icons_map[pid] = {"name": crew["name"], "profile_path": crew["profile_path"], "score": 0}
+                    icons_map[pid]["score"] += 2  # Directors get high weight
+        
+        # Sort and return top 6
+        sorted_icons = sorted(icons_map.values(), key=lambda x: x["score"], reverse=True)
+        return sorted_icons[:6]
+
+    def _generate_briefing(self, year: int, titan: Optional[dict] = None, critics: Optional[dict] = None) -> str:
+        """Generate a thematic and dynamic summary for the year."""
+        
+        milestones = {
+            1927: "The dawn of the 'Talkies'. The Jazz Singer changes cinema forever by introducing synchronized sound.",
+            1939: "Arguably the greatest year in Hollywood history, defined by the release of 'Gone with the Wind' and 'The Wizard of Oz'.",
+            1941: "An experimental peak. Orson Welles releases 'Citizen Kane', rewriting the rulebook on cinematography and structure.",
+            1972: "The peak of New Hollywood. The crime epic 'The Godfather' redefines the prestige drama.",
+            1977: "The birth of the modern sci-fi phenomenon as 'Star Wars' takes the world by storm.",
+            1993: "The digital revolution truly begins with the photorealistic dinosaurs of 'Jurassic Park' and the emotional weight of 'Schindler's List'.",
+            1994: "A landmark year for independent and animated cinema, witnessing the release of masterpieces like 'The Lion King' and 'Pulp Fiction'.",
+            1999: "The turn of the millennium. A cerebral year for film, featuring 'The Matrix', 'Fight Club', and 'Eyes Wide Shut'.",
+            2008: "The superhero genre is reinvented with the grounded realism of 'The Dark Knight' and the launch of the MCU with 'Iron Man'.",
+            2019: "A record-breaking year where global blockbusters like 'Endgame' met historic international breakthroughs like 'Parasite'.",
+            2023: "The year of 'Barbenheimer'—a cultural phenomenon that proved original, auteur-driven cinema still dominates the conversation."
+        }
+
+        if year in milestones:
+            return milestones[year]
