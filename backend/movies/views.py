@@ -216,3 +216,44 @@ def search_people(request):
     return Response(data)
 
 
+
+MOOD_MAP = {
+    "cozy-night": {
+        "label": "Cozy Night In",
+        "description": "Warm, comforting films perfect for a relaxed evening",
+        "genres": "35,10749,16",  # Comedy, Romance, Animation
+        "sort_by": "vote_average.desc",
+        "vote_count_gte": 200,
+        "vote_average_gte": 7.0,
+    },
+    "adrenaline": {
+        "label": "Adrenaline Rush",
+        "description": "Heart-pumping action and intense thrills",
+        "genres": "28,53,80",  # Action, Thriller, Crime
+        "sort_by": "popularity.desc",
+        "vote_count_gte": 300,
+    },
+    "date-night": {
+        "label": "Date Night",
+        "description": "Romantic and charming films to share with someone special",
+        "genres": "10749,35,18",  # Romance, Comedy, Drama
+        "sort_by": "vote_average.desc",
+        "vote_count_gte": 150,
+        "vote_average_gte": 6.5,
+    },
+    "mind-bender": {
+        "label": "Mind Bender",
+        "description": "Thought-provoking stories that twist your perception",
+        "genres": "878,9648,53",  # Sci-Fi, Mystery, Thriller
+        "sort_by": "vote_average.desc",
+        "vote_count_gte": 200,
+        "vote_average_gte": 7.0,
+    },
+    "feel-good": {
+        "label": "Feel Good",
+        "description": "Uplifting stories that leave you smiling",
+        "genres": "35,10751,16",  # Comedy, Family, Animation
+        "sort_by": "vote_average.desc",
+        "vote_count_gte": 150,
+        "vote_average_gte": 7.0,
+    },
