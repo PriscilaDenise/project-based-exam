@@ -351,3 +351,10 @@ def discover_filtered(request):
 
     year_from = request.query_params.get("year_from")
     year_to = request.query_params.get("year_to")
+       if year_from:
+            params["primary_release_date.gte"] = f"{year_from}-01-01"
+    if year_to:
+        params["primary_release_date.lte"] = f"{year_to}-12-31"
+
+    rating_min = request.query_params.get("rating_min")
+    if rating_min:
