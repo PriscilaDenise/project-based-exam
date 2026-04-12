@@ -358,3 +358,12 @@ def discover_filtered(request):
 
     rating_min = request.query_params.get("rating_min")
     if rating_min:
+               params["vote_average.gte"] = float(rating_min)
+        params["vote_count.gte"] = 50 
+
+    runtime_min = request.query_params.get("runtime_min")
+    runtime_max = request.query_params.get("runtime_max")
+    if runtime_min:
+        params["with_runtime.gte"] = int(runtime_min)
+    if runtime_max:
+        params["with_runtime.lte"] = int(runtime_max)
