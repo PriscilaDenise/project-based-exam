@@ -184,3 +184,35 @@ def top_rated(request):
     s = TMDBMovieSerializer(r, many=True)
     x = {"results": s.data, "page": p}
     return Response(x)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def movie_detail_tmdb(request, tmdb_id):
+
+    sync = request.query_params.get("sync", "false").lower() == "true"
+
+    if sync:
+        movie = sync_service.sync_movie(tmdb_id)
+        if movie:
+            serializer = MovieDetailSerializer(movie)
+            return Response(serializer.data)
+
+    data = tmdb.get_movie_details(tmdb_id)
+    if not data:
+        return Response({"error": "Movie not found"}, status=404)
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def search_people(request):
+    query = request.query_params.get("q", "").strip()
+    if not query:
+        return Response({"error": "Query parameter 'q' is required"}, status=400)
+
+    data = tmdb.search_people(query)
+    return Response(data)
+
+
