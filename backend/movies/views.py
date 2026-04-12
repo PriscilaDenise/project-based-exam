@@ -367,3 +367,7 @@ def discover_filtered(request):
         params["with_runtime.gte"] = int(runtime_min)
     if runtime_max:
         params["with_runtime.lte"] = int(runtime_max)
+        
+         language = request.query_params.get("language")
+    if language:
+        params["with_original_language"] = language
