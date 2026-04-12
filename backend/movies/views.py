@@ -58,7 +58,6 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(wiki_data)
 
-
 ## Genre ViewSet
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     """Genres API."""
@@ -81,7 +80,7 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = MovieCompactSerializer(paginator, many=True)
             return self.get_paginated_response(serializer.data)
 
-        # Fallback to TMDB API
+       # Fallback to TMDB API
         data = tmdb.get_movies_by_genre(genre.tmdb_id, page=page, sort_by=sort)
         results = data.get("results", [])
         serializer = TMDBMovieSerializer(results, many=True)
@@ -91,6 +90,7 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
             "total_results": data.get("total_results", 0),
             "page": page,
         })
+
 
 
 ## Person ViewSet
@@ -118,11 +118,11 @@ class PersonViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = PersonDetailSerializer(person)
         return Response(serializer.data)
+    
+    
+    ## standalone endpoints
 
-
-## standalone endpoints
-
-@api_view(["POST"])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def search_movies(request):
     query = request.query_params.get("q", "").strip()
@@ -147,7 +147,7 @@ def search_movies(request):
     })
 
 
-@api_view(["POST"])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def trending_movies(request):
     window = request.query_params.get("window", "week")
@@ -162,9 +162,9 @@ def trending_movies(request):
         "total_pages": data.get("total_pages", 1),
         "page": page,
     })
-
-
-@api_view(["GET"])
+    
+    
+    @api_view(["GET"])
 @permission_classes([AllowAny])
 def now_playing(request):
     p = int(request.query_params.get("page", 1))
@@ -295,137 +295,3 @@ MOOD_MAP = {
         "vote_average_gte": 7.0,
     },
 }
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def mood_list(request):
-    moods = [
-        {"slug": slug, "label": m["label"], "description": m["description"]}
-        for slug, m in MOOD_MAP.items()
-    ]
-    return Response(moods)
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def mood_movies(request, mood_slug):
-    mood = MOOD_MAP.get(mood_slug)
-    if not mood:
-        return Response({"error": "Unknown mood"}, status=404)
-
-    page = int(request.query_params.get("page", 1))
-    params = {
-        "with_genres": mood["genres"],
-        "sort_by": mood.get("sort_by", "popularity.desc"),
-        "page": page,
-    }
-    if "vote_count_gte" in mood:
-        params["vote_count.gte"] = mood["vote_count_gte"]
-    if "vote_average_gte" in mood:
-        params["vote_average.gte"] = mood["vote_average_gte"]
-
-    data = tmdb.discover_movies(**params)
-    results = data.get("results", [])
-    serializer = TMDBMovieSerializer(results, many=True)
-
-    return Response({
-        "mood": {"slug": mood_slug, "label": mood["label"], "description": mood["description"]},
-        "results": serializer.data,
-        "total_pages": data.get("total_pages", 1),
-        "page": page,
-    })
-
-
-### advanced discover / filters
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def discover_filtered(request):
-    params = {}
-    page = int(request.query_params.get("page", 1))
-    params["page"] = page
-
-    genre = request.query_params.get("genre")
-    if genre:
-        params["with_genres"] = genre
-
-    year_from = request.query_params.get("year_from")
-    year_to = request.query_params.get("year_to")
-    if year_from:
-        params["primary_release_date.gte"] = f"{year_from}-01-01"
-    if year_to:
-        params["primary_release_date.lte"] = f"{year_to}-12-31"
-
-    rating_min = request.query_params.get("rating_min")
-    if rating_min:
-        params["vote_average.gte"] = float(rating_min)
-        params["vote_count.gte"] = 50 
-
-    runtime_min = request.query_params.get("runtime_min")
-    runtime_max = request.query_params.get("runtime_max")
-    if runtime_min:
-        params["with_runtime.gte"] = int(runtime_min)
-    if runtime_max:
-        params["with_runtime.lte"] = int(runtime_max)
-
-    language = request.query_params.get("language")
-    if language:
-        params["with_original_language"] = language
-
-    sort = request.query_params.get("sort", "popularity.desc")
-    params["sort_by"] = sort
-
-    data = tmdb.discover_movies(**params)
-    results = data.get("results", [])
-    serializer = TMDBMovieSerializer(results, many=True)
-
-    return Response({
-        "results": serializer.data,
-        "total_pages": data.get("total_pages", 1),
-        "total_results": data.get("total_results", 0),
-        "page": page,
-    })
-
-
-## movie comparison
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def compare_movies(request):
-    ids_str = request.query_params.get("ids", "")
-    ids = [int(i.strip()) for i in ids_str.split(",") if i.strip().isdigit()]
-
-    if len(ids) < 2:
-        return Response({"error": "Provide at least 2 TMDB IDs: ?ids=550,680"}, status=400)
-
-    movies = []
-    for tmdb_id in ids[:2]:
-        data = tmdb.get_movie_details(tmdb_id)
-        if data and "id" in data:
-            movies.append(data)
-
-    if len(movies) < 2:
-        return Response({"error": "Could not fetch both movies"}, status=404)
-
-    return Response({"movies": movies})
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def compare_two_movies(request):
-    id_string = request.query_params.get("ids", "")
-    movie_ids = [int(i.strip()) for i in id_string.split(",") if i.strip().isdigit()]
-
-    if len(movie_ids) < 2:
-        return Response({"error": "Provide at least 2 TMDB IDs: ?ids=550,680"}, status=400)
-
-    movie_list = []
-    for tid in movie_ids[:2]:
-        result = tmdb.get_movie_details(tid)
-        if result and "id" in result:
-            movie_list.append(result)
-
-    if len(movie_list) < 2:
-        return Response({"error": "Could not fetch both movies"}, status=404)
-
-    return Response({"movies": movie_list})
