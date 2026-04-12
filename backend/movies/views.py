@@ -374,3 +374,7 @@ def discover_filtered(request):
         
          sort = request.query_params.get("sort", "popularity.desc")
     params["sort_by"] = sort
+    
+    data = tmdb.discover_movies(**params)
+    results = data.get("results", [])
+    serializer = TMDBMovieSerializer(results, many=True)
