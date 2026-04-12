@@ -335,3 +335,19 @@ def mood_movies(request, mood_slug):
         "total_pages": data.get("total_pages", 1),
         "page": page,
     })
+    
+    
+    ### advanced discover / filters
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def discover_filtered(request):
+    params = {}
+    page = int(request.query_params.get("page", 1))
+    params["page"] = page
+
+    genre = request.query_params.get("genre")
+    if genre:
+        params["with_genres"] = genre
+
+    year_from = request.query_params.get("year_from")
+    year_to = request.query_params.get("year_to")
