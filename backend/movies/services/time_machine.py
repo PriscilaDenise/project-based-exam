@@ -144,3 +144,29 @@ class TimeMachineService:
 
         if year in milestones:
             return milestones[year]
+        
+          # Dynamic fallback based on fetched data
+        titan_title = titan.get("title") if titan else None
+        critics_title = critics.get("title") if critics else None
+
+        if year < 1930:
+            return f"The Silent Era pioneer stage. In {year}, visual expressionism was reaching its peak before the arrival of sound."
+        if year < 1950:
+            if titan_title:
+                return f"Golden Age Hollywood. In {year}, films like '{titan_title}' defined the era's grand studio-driven storytelling."
+            return f"The Golden Age of Hollywood. {year} represents a time of grand cinematic spectacles and studio system dominance."
+        if year < 1970:
+            return f"The era of transition. By {year}, the classic studio system faces the rise of bold, rebellious New Hollywood directors."
+        if year < 1990:
+            if titan_title:
+                return f"The Blockbuster Renaissance. In {year}, the world was captivated by high-concept hits like '{titan_title}'."
+            return f"The Blockbuster Era. {year} was defined by high-concept adventures and the home video revolution."
+        if year < 2010:
+            if critics_title:
+                return f"The Digital Frontier. {year} saw the rise of modern classics like '{critics_title}', bridging film and digital worlds."
+            return f"The Digital Transformation. In {year}, cinema began embracing digital production and independent miracles."
+        
+        if titan_title:
+            return f"The Modern Streaming Age. In {year}, global narratives flourished, led by major successes like '{titan_title}'."
+        return f"The contemporary masterpiece era. In {year}, cinema continues to inspire across global platforms and original stories."
+
