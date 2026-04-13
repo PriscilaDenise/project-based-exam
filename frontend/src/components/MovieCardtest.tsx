@@ -2,6 +2,8 @@ import { render } from '@testing-library/react';
 import { MovieCardSkeleton } from './MovieCard';
 
 // Using a basic div instead of lucide-react to avoid external mocking issues in simple test
+// Mock the lucide-react icon to avoid dependency issues during testing
+// and keep the test focused on structure, not external UI libraries
 jest.mock('lucide-react', () => ({
   Star: () => <div data-testid="star-icon">Star</div>
 }));
