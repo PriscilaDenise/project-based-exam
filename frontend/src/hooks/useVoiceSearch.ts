@@ -50,3 +50,25 @@ export function useVoiceSearch() {
       }
     };
   }, []);
+
+  const startListening = useCallback(() => {
+    if (!recognitionRef.current) {
+      setError("Speech recognition not initialized.");
+      return;
+    }
+    try {
+      recognitionRef.current.start();
+    } catch (err) {
+      // Re-initialize if it was in a weird state
+      console.warn("Speech recognition already started or failed to start", err);
+    }
+  }, []);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }, []);
+
+  return { isListening, transcript, error, startListening, stopListening };
+}
