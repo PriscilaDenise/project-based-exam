@@ -402,4 +402,7 @@ def compare_movies(request):
     for tmdb_id in ids[:2]:
         data = tmdb.get_movie_details(tmdb_id)
         if data and "id" in data:
-       
+            movies.append(data)
+
+    if len(movies) < 2:
+        
