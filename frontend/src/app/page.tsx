@@ -9,3 +9,9 @@ import PersonalizedSection from "@/components/PersonalizedSection";
 import MoodTeaser from "@/components/MoodTeaser";
 import { moviesAPI } from "@/lib/api";
 import type { MovieCompact } from "@/types/movie";
+
+export default function HomePage() {
+  const [trending, setTrending] = useState<MovieCompact[]>([]);
+  const [nowPlaying, setNowPlaying] = useState<MovieCompact[]>([]);
+  const [topRated, setTopRated] = useState<MovieCompact[]>([]);
+  const [loading, setLoading] = useState(true);
