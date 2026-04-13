@@ -16,3 +16,27 @@ export function useVoiceSearch() {
       recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = "en-US";
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setError(null);
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      recognition.onerror = (event: any) => {
+        setError(event.error);
+        setIsListening(false);
+      };
+      
+      recognition.onresult = (event: any) => {
+        const text = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join("");
+        setTranscript(text);
+      };
+
+      recognitionRef.current = recognition;
