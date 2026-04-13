@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     "recommendations.apps.RecommendationsConfig",
     "users.apps.UsersConfig",
 ]
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
