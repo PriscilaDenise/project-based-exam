@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import GenreGrid from './GenreGrid';
 
-// Mock Next.js Link component
+// Mock Next.js Link component since it doesn't work in a test environment
+// Replace it with a simple <a> tag so we can test href and text content
 jest.mock('next/link', () => {
   return ({ children, href }: { children: React.ReactNode; href: string }) => {
     return <a href={href}>{children}</a>;
