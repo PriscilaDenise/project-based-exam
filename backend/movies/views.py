@@ -400,4 +400,6 @@ def compare_movies(request):
 
     movies = []
     for tmdb_id in ids[:2]:
-     
+        data = tmdb.get_movie_details(tmdb_id)
+        if data and "id" in data:
+       
