@@ -40,3 +40,13 @@ export function useVoiceSearch() {
       };
 
       recognitionRef.current = recognition;
+    } else {
+      setError("Speech recognition not supported in this browser.");
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
