@@ -39,4 +39,40 @@ export function useVoiceSearch() {
         setTranscript(text);
       };
 
+<<<<<<< HEAD
       recognitionRef.current = recognition;
+=======
+      recognitionRef.current = recognition;
+    } else {
+      setError("Speech recognition not supported in this browser.");
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
+
+  const startListening = useCallback(() => {
+    if (!recognitionRef.current) {
+      setError("Speech recognition not initialized.");
+      return;
+    }
+    try {
+      recognitionRef.current.start();
+    } catch (err) {
+      // Re-initialize if it was in a weird state
+      console.warn("Speech recognition already started or failed to start", err);
+    }
+  }, []);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }, []);
+
+  return { isListening, transcript, error, startListening, stopListening };
+}
+>>>>>>> 1da11e28b7ede69b5e9fd79c787f9dc325ba5e5d
