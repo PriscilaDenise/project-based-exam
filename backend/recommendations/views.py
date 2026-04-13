@@ -36,11 +36,11 @@ def because_you_watched(request):
     """GET /api/recommendations/because-you-watched/"""
     data = engine.get_because_you_watched(request.user)
     # use dictionary comprehension for cleaner response building
-    grouped_results = {
+    result = {
         title: TMDBMovieSerializer(movies, many=True).data
         for title, movies in data.items()
 }
-    return Response(grouped_results)
+    return Response(result)
 
 
 
@@ -91,7 +91,7 @@ class WatchlistViewSet(viewsets.ModelViewSet):
         item.save()
         return Response(WatchlistSerializer(item).data)
 
-
+# This view contains complex aggregation logic and will be refactored into a service layer
 # ==============================================================================
 # Dashboard Endpoints
 # ============================================================================
