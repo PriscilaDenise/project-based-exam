@@ -9,6 +9,7 @@ from recommendations.serializers import UserMovieInteractionSerializer
 from movies.models import Genre
 from recommendations.services.engine import RecommendationEngine
 
+
 class DashboardService:
     """
     A service class designated to fetch and compute dashboard statistics
@@ -45,7 +46,7 @@ class DashboardService:
             "watchlist_watched": watchlist_watched,
             "average_rating": round(avg_rating, 1) if avg_rating else None,
         }
-    
+
     def get_genre_distribution(self) -> list:
         """Calculates the distribution of genres based on recent positive interactions."""
         genre_counter = Counter()
@@ -66,7 +67,7 @@ class DashboardService:
                 genre_distribution.append({"name": f"Genre {gid}", "tmdb_id": gid, "count": count})
                 
         return genre_distribution
-    
+
     def get_preference_scores(self) -> list:
         """Retrieves and computes genre preference scores."""
         self.engine.compute_genre_preferences(self.user)
@@ -76,7 +77,7 @@ class DashboardService:
             {"name": p.genre_name, "weight": round(p.weight, 1), "count": p.interaction_count}
             for p in prefs
         ]
-    
+
     def get_activity_timeline(self) -> list:
         """Generates a daily activity timeline for the last 30 days."""
         thirty_days_ago = timezone.now() - timedelta(days=30)
@@ -92,7 +93,7 @@ class DashboardService:
             {"date": str(d["date"]), "count": d["count"]}
             for d in daily_activity
         ]
-    
+
     def get_recent_activity(self) -> list:
         """Fetches the 10 most recent interactions."""
         recent = self.interactions.order_by("-created_at")[:10]
