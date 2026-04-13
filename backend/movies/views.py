@@ -385,3 +385,11 @@ def discover_filtered(request):
         "total_results": data.get("total_results", 0),
         "page": page,
     })
+        
+        
+        ## movie comparison
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def compare_movies(request):
+
