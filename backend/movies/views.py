@@ -398,3 +398,6 @@ def compare_movies(request):
     if len(ids) < 2:
         return Response({"error": "Provide at least 2 TMDB IDs: ?ids=550,680"}, status=400)
 
+    movies = []
+    for tmdb_id in ids[:2]:
+     
