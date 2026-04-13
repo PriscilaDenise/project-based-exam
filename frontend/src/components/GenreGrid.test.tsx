@@ -18,6 +18,8 @@ describe('GenreGrid', () => {
 
   it('renders specific genre names correctly', () => {
     render(<GenreGrid />);
+    // Check that some key genre labels appear in the UI
+    // This ensures text content is rendered properly
     expect(screen.getByText('Action')).toBeInTheDocument();
     expect(screen.getByText('Sci-Fi')).toBeInTheDocument();
     expect(screen.getByText('Comedy')).toBeInTheDocument();
