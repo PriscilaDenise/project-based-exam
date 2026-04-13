@@ -8,6 +8,7 @@ jest.mock('lucide-react', () => ({
   Star: () => <div data-testid="star-icon">Star</div>
 }));
 
+// Test suite for the loading skeleton component
 describe('MovieCardSkeleton', () => {
   it('renders correctly', () => {
     const { container } = render(<MovieCardSkeleton />);
