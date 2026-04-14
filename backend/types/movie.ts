@@ -41,3 +41,10 @@ export interface CastMember {
   character: string;
   order: number;
 }
+
+export interface WatchProvider {
+  provider_name: string;
+  provider_type: "stream" | "rent" | "buy" | "free";
+  logo_url: string | null;
+  link: string;
+}
