@@ -36,7 +36,7 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
           setLoading(false);
           return;
         }
-        await register(username, email, password);
+        
         if (password !== confirmPassword) {
           setError("Passwords do not match");
           setLoading(false);
