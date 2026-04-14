@@ -77,3 +77,15 @@ export interface PaginatedResponse<T> {
   page: number;
   query?: string;
 }
+
+// User Types 
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  avatar_url: string;
+  favorite_genres: number[];
+  country_code: string;
+  date_joined: string;
+}
