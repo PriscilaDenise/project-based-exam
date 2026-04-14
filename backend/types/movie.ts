@@ -67,3 +67,13 @@ export interface MovieDetail extends MovieCompact {
   wikipedia_url: string;
   wikipedia_summary: string;
 }
+
+// API Response Types 
+
+export interface PaginatedResponse<T> {
+  results: T[];
+  total_pages?: number;
+  total_results?: number;
+  page: number;
+  query?: string;
+}
