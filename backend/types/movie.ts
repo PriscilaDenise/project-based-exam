@@ -48,3 +48,22 @@ export interface WatchProvider {
   logo_url: string | null;
   link: string;
 }
+
+export interface MovieDetail extends MovieCompact {
+  imdb_id: string;
+  original_title: string;
+  tagline: string;
+  backdrop_url: string | null;
+  trailer_url: string | null;
+  trailer_embed_url: string | null;
+  trailer_key: string;
+  budget: number;
+  revenue: number;
+  status: string;
+  homepage: string;
+  directors: Person[];
+  cast: CastMember[];
+  watch_providers: WatchProvider[];
+  wikipedia_url: string;
+  wikipedia_summary: string;
+}
