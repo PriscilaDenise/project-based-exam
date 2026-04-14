@@ -385,3 +385,26 @@ def discover_filtered(request):
         "total_results": data.get("total_results", 0),
         "page": page,
     })
+        
+        
+        ## movie comparison
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def compare_movies(request):
+    ids_str = request.query_params.get("ids", "")
+    ids = [int(i.strip()) for i in ids_str.split(",") if i.strip().isdigit()]
+
+    if len(ids) < 2:
+        return Response({"error": "Provide at least 2 TMDB IDs: ?ids=550,680"}, status=400)
+
+    movies = []
+    for tmdb_id in ids[:2]:
+        data = tmdb.get_movie_details(tmdb_id)
+        if data and "id" in data:
+            movies.append(data)
+
+    if len(movies) < 2:
+        return Response({"error": "Could not fetch both movies"}, status=404)
+
+    return Response({"movies": movies})

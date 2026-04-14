@@ -1,3 +1,5 @@
+# Refactored views to improve readability, reduce duplication, and apply service-layer architecture
+
 from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes, action
@@ -23,8 +25,9 @@ engine = RecommendationEngine()
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def personalized_recommendations(request):
-    """GET /api/recommendations/for-you/ → personalized picks."""
+    # Extract query parameter with default value to improve robustness
     page = int(request.query_params.get("page", 1))
+
     movies = engine.get_recommendations(request.user, page=page)
     # Inline serializer to remove unnecessary temporary variable
     return Response({"results": TMDBMovieSerializer(movies, many=True).data})
@@ -34,13 +37,14 @@ def personalized_recommendations(request):
 @permission_classes([IsAuthenticated])
 def because_you_watched(request):
     """GET /api/recommendations/because-you-watched/"""
+
     data = engine.get_because_you_watched(request.user)
-    # use dictionary comprehension for cleaner response building
-    grouped_results = {
+     # Refactored loop into dictionary comprehension for cleaner and more Pythonic code
+    result = {
         title: TMDBMovieSerializer(movies, many=True).data
         for title, movies in data.items()
 }
-    return Response(grouped_results)
+    return Response(result)
 
 
 
@@ -48,9 +52,11 @@ def because_you_watched(request):
 @permission_classes([IsAuthenticated])
 def genre_preferences(request):
     """GET /api/recommendations/preferences/"""
-    # Recomputing preferences
+
+    # Trigger recomputation to ensure up-to-date user preference data
     engine.compute_genre_preferences(request.user)
     prefs = UserGenrePreference.objects.filter(user=request.user)
+
     # Inline serializer to remove unnecessary temporary variable
     return Response(UserGenrePreferenceSerializer(prefs, many=True).data)
 
@@ -61,10 +67,15 @@ def track_interaction(request):
     POST /api/recommendations/track/
     Body: { movie_tmdb_id, movie_title, interaction_type, genre_ids?, rating? }
     """
+    # Serializer handles validation and deserialization of request data
     serializer = UserMovieInteractionSerializer(data=request.data)
+
+    # Validate input before saving to ensure data integrity
     if serializer.is_valid():
         serializer.save(user=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # Return validation errors for better client feedback
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -77,21 +88,26 @@ class WatchlistViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Restrict queryset to the authenticated user.
         return Watchlist.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        # Automatically associate watchlist items with the current user
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=["post"])
     def mark_watched(self, request, pk=None):
         """POST /api/recommendations/watchlist/{id}/mark_watched/"""
+
+        # Retrieve object using DRF helper method
         item = self.get_object()
         item.watched = True
         item.watched_at = timezone.now()
         item.save()
         return Response(WatchlistSerializer(item).data)
+    
 
-
+# This view contains complex aggregation logic and will be refactored into a service layer
 # ==============================================================================
 # Dashboard Endpoints
 # ============================================================================
@@ -106,80 +122,11 @@ def dashboard_stats(request):
     Returns aggregated stats for the user's dashboard.
     """
 
-
-    user = request.user
-
-    ## all interactions
-    interactions = UserMovieInteraction.objects.filter(user=user)
-    total_interactions = interactions.count()
-    likes = interactions.filter(interaction_type="like").count()
-    dislikes = interactions.filter(interaction_type="dislike").count()
-    watched = interactions.filter(interaction_type="watched").count()
-    searches = interactions.filter(interaction_type="search").count()
-
-    ### watchlist stats
-    watchlist = Watchlist.objects.filter(user=user)
-    watchlist_total = watchlist.count()
-    watchlist_watched = watchlist.filter(watched=True).count()
-
-    ## genre distribution from interactions
-    genre_counter = Counter()
-    for interaction in interactions.filter(interaction_type__in=["like", "watched", "watchlist"]):
-        for gid in interaction.genre_ids:
-            genre_counter[gid] += 1
-
-    ## mapping genre IDs to names
-    from movies.models import Genre
-    genre_distribution = []
-    for gid, count in genre_counter.most_common(10):
-        try:
-            genre = Genre.objects.get(tmdb_id=gid)
-            genre_distribution.append({"name": genre.name, "tmdb_id": gid, "count": count})
-        except Genre.DoesNotExist:
-            genre_distribution.append({"name": f"Genre {gid}", "tmdb_id": gid, "count": count})
-
-    engine.compute_genre_preferences(user)
-    prefs = UserGenrePreference.objects.filter(user=user).order_by("-weight")[:10]
-    preference_scores = [
-        {"name": p.genre_name, "weight": round(p.weight, 1), "count": p.interaction_count}
-        for p in prefs
-    ]
-
-    ## the activity over time (last 30 days)
-    from datetime import timedelta
-    thirty_days_ago = timezone.now() - timedelta(days=30)
-    daily_activity = (
-        interactions.filter(created_at__gte=thirty_days_ago)
-        .annotate(date=TruncDate("created_at"))
-        .values("date")
-        .annotate(count=Count("id"))
-        .order_by("date")
-    )
-    activity_timeline = [
-        {"date": str(d["date"]), "count": d["count"]}
-        for d in daily_activity
-    ]
-
-    ### recent interactions
-    recent = interactions.order_by("-created_at")[:10]
-    recent_data = UserMovieInteractionSerializer(recent, many=True).data
-
-    ### average rating given
-    avg_rating = interactions.filter(rating__isnull=False).aggregate(avg=Avg("rating"))["avg"]
-
-    return Response({
-        "summary": {
-            "total_interactions": total_interactions,
-            "likes": likes,
-            "dislikes": dislikes,
-            "watched": watched,
-            "searches": searches,
-            "watchlist_total": watchlist_total,
-            "watchlist_watched": watchlist_watched,
-            "average_rating": round(avg_rating, 1) if avg_rating else None,
-        },
-        "genre_distribution": genre_distribution,
-        "preference_scores": preference_scores,
-        "activity_timeline": activity_timeline,
-        "recent_activity": recent_data,
-    })
+    # Thin view pattern: delegate heavy business logic to service layer
+    service = DashboardService(request.user)
+    
+    # Centralized data aggregation handled inside service class
+    return Response(service.get_all_dashboard_data())
+    
+# Refactored views to improve readability, reduce duplication, and apply service-layer architecture
+   
