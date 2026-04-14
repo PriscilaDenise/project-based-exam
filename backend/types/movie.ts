@@ -18,3 +18,20 @@ export interface Person {
   directed_movies?: MovieCompact[];
   acted_movies?: MovieCompact[];
 }
+
+export interface MovieCompact {
+  id: number;
+  tmdb_id: number;
+  title: string;
+  overview: string;
+  release_date: string;
+  year: number | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  poster_url: string | null;
+  poster_url_small: string | null;
+  genres: Genre[];
+  runtime: number | null;
+  genre_ids?: number[];
+}
