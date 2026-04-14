@@ -71,3 +71,42 @@ export default function HomePage() {
             </div>
           </div>
           <GenreGrid />
+        </section>
+
+        <div className="section-divider mx-6 md:mx-10 lg:mx-20" />
+
+        {/* Mood picker teaser */}
+        <MoodTeaser />
+
+        <div className="section-divider mx-6 md:mx-10 lg:mx-20" />
+
+        {/* Personalized recommendations */}
+        <PersonalizedSection movies={topRated} />
+
+        <div className="section-divider mx-6 md:mx-10 lg:mx-20" />
+
+        {/* Now in theatres */}
+        <MovieCarousel
+          title="Now in Theatres"
+          subtitle="Currently showing on the big screen"
+          icon={<Star className="w-4 h-4 text-yellow-400" />}
+          movies={nowPlaying}
+          loading={loading}
+          href="/search?sort=now_playing"
+        />
+
+        <div className="section-divider mx-6 md:mx-10 lg:mx-20" />
+
+        {/* Top rated */}
+        <MovieCarousel
+          title="Highest Rated of All Time"
+          subtitle="The greatest films ever made, by audience score"
+          icon={<Crown className="w-4 h-4 text-gold" />}
+          movies={topRated}
+          loading={loading}
+          href="/search?sort=top_rated"
+        />
+      </div>
+    </div>
+  );
+}
