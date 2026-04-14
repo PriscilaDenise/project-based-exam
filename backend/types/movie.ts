@@ -89,3 +89,26 @@ export interface User {
   country_code: string;
   date_joined: string;
 }
+
+export interface AuthTokens {
+  access: string;
+  refresh: string;
+}
+
+// Recommendation Types
+
+export interface GenrePreference {
+  genre_tmdb_id: number;
+  genre_name: string;
+  weight: number;
+  interaction_count: number;
+}
+
+export interface WatchlistItem {
+  id: number;
+  movie_tmdb_id: number;
+  movie_title: string;
+  poster_path: string;
+  watched: boolean;
+  added_at: string;
+}
