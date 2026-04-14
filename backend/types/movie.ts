@@ -35,3 +35,9 @@ export interface MovieCompact {
   runtime: number | null;
   genre_ids?: number[];
 }
+
+export interface CastMember {
+  person: Person;
+  character: string;
+  order: number;
+}
