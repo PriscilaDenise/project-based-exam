@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, LogIn, UserPlus, Loader2, Film, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
+import PasswordInput from "@/components/PasswordInput";
 
 interface AuthModalProps {
   open: boolean;
@@ -16,11 +17,16 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   if (!open) return null;
+
+  function resetSensitiveFields() {
+    setPassword("");
+    setPasswordConfirm("");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,20 +42,23 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
           setLoading(false);
           return;
         }
-        
-        if (password !== confirmPassword) {
+        if (password !== passwordConfirm) {
           setError("Passwords do not match");
           setLoading(false);
           return;
         }
-        await register(username, email, password, confirmPassword);
+        if (password.length < 8) {
+          setError("Password must be at least 8 characters");
+          setLoading(false);
+          return;
+        }
+        await register(username, email, password, passwordConfirm);
       }
       onClose();
       setUsername("");
       setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {
+      resetSensitiveFields();
+    } catch {
       setError(
         mode === "login"
           ? "Invalid username or password"
@@ -103,15 +112,20 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
             )}
 
             <div>
-              <label className="text-[11px] uppercase tracking-wider text-white/30 font-semibold mb-1.5 block">
+              <label
+                htmlFor="auth-username"
+                className="text-[11px] uppercase tracking-wider text-white/30 font-semibold mb-1.5 block"
+              >
                 Username
               </label>
               <input
+                id="auth-username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 minLength={3}
+                autoComplete="username"
                 className="w-full h-12 px-4 rounded-xl bg-surface-2 border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all font-body"
                 placeholder="Your username"
               />
@@ -119,50 +133,51 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
 
             {mode === "register" && (
               <div className="animate-fade-in">
-                <label className="text-[11px] uppercase tracking-wider text-white/30 font-semibold mb-1.5 block">
+                <label
+                  htmlFor="auth-email"
+                  className="text-[11px] uppercase tracking-wider text-white/30 font-semibold mb-1.5 block"
+                >
                   Email
                 </label>
                 <input
+                  id="auth-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                   className="w-full h-12 px-4 rounded-xl bg-surface-2 border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all font-body"
                   placeholder="you@example.com"
                 />
               </div>
             )}
 
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-white/30 font-semibold mb-1.5 block">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="w-full h-12 px-4 rounded-xl bg-surface-2 border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all font-body"
-                placeholder={mode === "register" ? "Min 8 characters" : "Your password"}
-              />
-            </div>
+            <PasswordInput
+              id="auth-password"
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              placeholder={mode === "register" ? "Min 8 characters" : "Your password"}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              minLength={8}
+              name="password"
+            />
+
             {mode === "register" && (
               <div className="animate-fade-in">
-                <label className="text-[11px] uppercase tracking-wider text-white/30 font-semibold mb-1.5 block">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
+                <PasswordInput
+                  id="auth-password-confirm"
+                  label="Confirm password"
+                  value={passwordConfirm}
+                  onChange={setPasswordConfirm}
+                  placeholder="Re-enter your password"
+                  autoComplete="new-password"
                   minLength={8}
-                  className="w-full h-12 px-4 rounded-xl bg-surface-2 border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all font-body"
-                  placeholder="Re-enter password"
+                  name="password_confirm"
                 />
               </div>
             )}
+
             <button
               type="submit"
               disabled={loading}
@@ -190,7 +205,11 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
                   Don&apos;t have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => { setMode("register"); setError(""); }}
+                    onClick={() => {
+                      setMode("register");
+                      setError("");
+                      setPasswordConfirm("");
+                    }}
                     className="text-gold hover:text-gold-light font-medium transition-colors"
                   >
                     Sign up
@@ -201,7 +220,11 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
                   Already have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => { setMode("login"); setError(""); }}
+                    onClick={() => {
+                      setMode("login");
+                      setError("");
+                      setPasswordConfirm("");
+                    }}
                     className="text-gold hover:text-gold-light font-medium transition-colors"
                   >
                     Sign in
