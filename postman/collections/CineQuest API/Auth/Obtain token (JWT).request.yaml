@@ -1,0 +1,36 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/auth/token/'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "demo_user",
+      "password": "securepass1"
+    }
+description: 'POST body: `username`, `password`. Saves `access` and `refresh` to the active environment (and collection variables).'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code !== 200) {
+        return;
+      }
+
+      const json = pm.response.json();
+
+      pm.test("Response includes access and refresh tokens", function () {
+        pm.expect(json).to.have.property("access");
+        pm.expect(json).to.have.property("refresh");
+        pm.expect(json.access).to.be.a("string").and.not.empty;
+        pm.expect(json.refresh).to.be.a("string").and.not.empty;
+      });
+
+      pm.environment.set("access_token", json.access);
+      pm.environment.set("refresh_token", json.refresh);
+      pm.collectionVariables.set("access_token", json.access);
+      pm.collectionVariables.set("refresh_token", json.refresh);

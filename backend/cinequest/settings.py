@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "recommendations.apps.RecommendationsConfig",
     "users.apps.UsersConfig",
 ]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -93,7 +94,17 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "100/hour", "user": "1000/hour"},
+    # Local dev (prefetch + Strict Mode) burns through 100/h fast; override with env in production.
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.environ.get(
+            "API_THROTTLE_ANON",
+            "6000/hour" if DEBUG else "100/hour",
+        ),
+        "user": os.environ.get(
+            "API_THROTTLE_USER",
+            "12000/hour" if DEBUG else "1000/hour",
+        ),
+    },
 }
 
 SIMPLE_JWT = {

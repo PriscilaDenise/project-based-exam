@@ -20,70 +20,30 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatDate(dateStr: string, options?: { format?: 'short' | 'long' | 'numeric' }): string {
+export function formatDate(dateStr: string): string {
   if (!dateStr) return "";
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return "";
-  
-  const format = options?.format || 'long';
-  switch (format) {
-    case 'short':
-      return date.toLocaleDateString("en-US", {
-        year: "2-digit",
-        month: "short",
-        day: "numeric",
-      });
-    case 'numeric':
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    default:
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-  }
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export function ratingColor(rating: number): string {
-  if (rating >= 9) return "text-emerald-400";
-  if (rating >= 7) return "text-green-400";
+  if (rating >= 8) return "text-emerald-400";
   if (rating >= 6) return "text-amber-300";
   if (rating >= 4) return "text-orange-400";
   return "text-red-400";
 }
 
-export function posterUrl(path: string | null): string {
+export function posterUrl(path: string | null, size: "w185" | "w500" | "original" = "w500"): string {
   if (!path) return "/placeholder-poster.svg";
   if (path.startsWith("http")) return path;
-  return `https://image.tmdb.org/t/p/w500${path}`;
+  return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
 export function backdropUrl(path: string | null): string {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   return `https://image.tmdb.org/t/p/w1280${path}`;
-}
-
-export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + "...";
-}
-
-export function calculateAverageRating(ratings: number[]): number {
-  if (ratings.length === 0) return 0;
-  const sum = ratings.reduce((acc, rating) => acc + rating, 0);
-  return Math.round((sum / ratings.length) * 10) / 10;
-}
-
-export function generateSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim();
 }

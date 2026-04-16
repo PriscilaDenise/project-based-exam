@@ -1,0 +1,262 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-cinequest-api",
+    "name": "CineQuest API",
+    "description": "Django REST API for CineQuest. Import **CineQuest.local.postman_environment.json**, select that environment, then run **Register** (once) and **Obtain token**. Tokens are saved automatically. Start the backend: `python manage.py runserver` (TMDB-backed routes need `TMDB_API_KEY` in `.env`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "watchlist_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Obtain token (JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    pm.environment.set(\"access_token\", j.access);",
+                  "    pm.environment.set(\"refresh_token\", j.refresh);",
+                  "    pm.collectionVariables.set(\"access_token\", j.access);",
+                  "    pm.collectionVariables.set(\"refresh_token\", j.refresh);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_user\",\n  \"password\": \"your_password_here\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/token/",
+            "description": "POST body: `username`, `password`. Saves `access` and `refresh` to the active environment (and collection variables)."
+          }
+        },
+        {
+          "name": "Refresh token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    pm.environment.set(\"access_token\", j.access);",
+                  "    pm.collectionVariables.set(\"access_token\", j.access);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/token/refresh/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_user\",\n  \"email\": \"demo@example.com\",\n  \"password\": \"securepass1\",\n  \"password_confirm\": \"securepass1\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/register/"
+          }
+        },
+        {
+          "name": "Profile (GET)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/profile/"
+          }
+        },
+        {
+          "name": "Profile (PATCH)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+            },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"favorite_genres\": [28, 12],\n  \"country_code\": \"UG\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/profile/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Movies (public)",
+      "item": [
+        {
+          "name": "List movies (paginated)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/list/" }
+        },
+        {
+          "name": "List genres",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/genres/" }
+        },
+        {
+          "name": "Genre detail",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/genres/action/" }
+        },
+        {
+          "name": "Moods list",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/moods/" }
+        },
+        {
+          "name": "Mood movies",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/moods/cozy-night/" }
+        },
+        {
+          "name": "Search movies",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/movies/search/?q=inception&page=1"
+          }
+        },
+        {
+          "name": "Trending",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/movies/trending/?window=week&page=1"
+          }
+        },
+        {
+          "name": "Now playing",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/now-playing/?page=1" }
+        },
+        {
+          "name": "Top rated",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/top-rated/?page=1" }
+        },
+        {
+          "name": "Discover (filters)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/movies/discover/?page=1&genre=28&year_from=2020&rating_min=7&sort=popularity.desc"
+          }
+        },
+        {
+          "name": "Compare two movies",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/movies/compare/?ids=550,680"
+          }
+        },
+        {
+          "name": "Time machine (year)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/movies/time-machine/?year=1994"
+          }
+        },
+        {
+          "name": "Movie by TMDB id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/movies/tmdb/550/" }
+        },
+        {
+          "name": "Search people",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/movies/people/search/?q=nolan"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recommendations (auth)",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "For you",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/recommendations/for-you/?page=1" }
+        },
+        {
+          "name": "Because you watched",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/recommendations/because-you-watched/" }
+        },
+        {
+          "name": "Genre preferences",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/recommendations/preferences/" }
+        },
+        {
+          "name": "Dashboard",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/recommendations/dashboard/" }
+        },
+        {
+          "name": "Track interaction",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movie_tmdb_id\": 550,\n  \"movie_title\": \"Fight Club\",\n  \"interaction_type\": \"view\",\n  \"genre_ids\": [18, 53],\n  \"rating\": null\n}"
+            },
+            "url": "{{baseUrl}}/api/recommendations/track/"
+          }
+        },
+        {
+          "name": "Watchlist list",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/recommendations/watchlist/" }
+        },
+        {
+          "name": "Watchlist add",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movie_tmdb_id\": 27205,\n  \"movie_title\": \"Inception\",\n  \"poster_path\": \"/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg\"\n}"
+            },
+            "url": "{{baseUrl}}/api/recommendations/watchlist/"
+          }
+        },
+        {
+          "name": "Watchlist mark watched",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/recommendations/watchlist/{{watchlist_id}}/mark_watched/"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/recommendations/track/'
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "movie_tmdb_id": 550,
+      "movie_title": "Fight Club",
+      "interaction_type": "view",
+      "genre_ids": [18, 53],
+      "rating": null
+    }

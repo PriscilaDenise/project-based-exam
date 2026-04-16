@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import VoiceBrowseBridge from "@/components/VoiceBrowseBridge";
 
 export const metadata: Metadata = {
   title: "CineQuest: Discover Your Next Favorite Movie",
@@ -23,6 +24,7 @@ export default function RootLayout({
 
         <AuthProvider>
           <Navbar />
+          <VoiceBrowseBridge />
           <main className="flex-1">{children}</main>
           <Footer />
         </AuthProvider>

@@ -1,0 +1,5 @@
+$kind: http-request
+method: GET
+url: "{{baseUrl}}/api/movies/tmdb/550/"
+examples: .resources/Movie by TMDB id.resources/examples
+order: 13000

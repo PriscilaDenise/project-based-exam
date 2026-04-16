@@ -58,6 +58,7 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(wiki_data)
 
+
 ## Genre ViewSet
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     """Genres API."""
@@ -80,7 +81,7 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = MovieCompactSerializer(paginator, many=True)
             return self.get_paginated_response(serializer.data)
 
-       # Fallback to TMDB API
+        # Fallback to TMDB API
         data = tmdb.get_movies_by_genre(genre.tmdb_id, page=page, sort_by=sort)
         results = data.get("results", [])
         serializer = TMDBMovieSerializer(results, many=True)
@@ -90,7 +91,6 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
             "total_results": data.get("total_results", 0),
             "page": page,
         })
-
 
 
 ## Person ViewSet
@@ -118,9 +118,9 @@ class PersonViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = PersonDetailSerializer(person)
         return Response(serializer.data)
-    
-    
-    ## standalone endpoints
+
+
+## standalone endpoints
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -162,9 +162,9 @@ def trending_movies(request):
         "total_pages": data.get("total_pages", 1),
         "page": page,
     })
-    
-    
-    @api_view(["GET"])
+
+
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def now_playing(request):
     p = int(request.query_params.get("page", 1))
@@ -335,9 +335,9 @@ def mood_movies(request, mood_slug):
         "total_pages": data.get("total_pages", 1),
         "page": page,
     })
-    
-    
-    ### advanced discover / filters
+
+
+### advanced discover / filters
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def discover_filtered(request):
@@ -351,14 +351,14 @@ def discover_filtered(request):
 
     year_from = request.query_params.get("year_from")
     year_to = request.query_params.get("year_to")
-       if year_from:
-            params["primary_release_date.gte"] = f"{year_from}-01-01"
+    if year_from:
+        params["primary_release_date.gte"] = f"{year_from}-01-01"
     if year_to:
         params["primary_release_date.lte"] = f"{year_to}-12-31"
 
     rating_min = request.query_params.get("rating_min")
     if rating_min:
-               params["vote_average.gte"] = float(rating_min)
+        params["vote_average.gte"] = float(rating_min)
         params["vote_count.gte"] = 50 
 
     runtime_min = request.query_params.get("runtime_min")
@@ -367,27 +367,27 @@ def discover_filtered(request):
         params["with_runtime.gte"] = int(runtime_min)
     if runtime_max:
         params["with_runtime.lte"] = int(runtime_max)
-        
-         language = request.query_params.get("language")
+
+    language = request.query_params.get("language")
     if language:
         params["with_original_language"] = language
-        
-         sort = request.query_params.get("sort", "popularity.desc")
+
+    sort = request.query_params.get("sort", "popularity.desc")
     params["sort_by"] = sort
-    
+
     data = tmdb.discover_movies(**params)
     results = data.get("results", [])
     serializer = TMDBMovieSerializer(results, many=True)
-    
-        return Response({
+
+    return Response({
         "results": serializer.data,
         "total_pages": data.get("total_pages", 1),
         "total_results": data.get("total_results", 0),
         "page": page,
     })
-        
-        
-        ## movie comparison
+
+
+## movie comparison
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -408,3 +408,22 @@ def compare_movies(request):
         return Response({"error": "Could not fetch both movies"}, status=404)
 
     return Response({"movies": movies})
+
+from .services.time_machine import TimeMachineService
+
+tm_service = TimeMachineService()
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def time_machine(request):
+    """GET /api/movies/time-machine/ → year capsule."""
+    year_str = request.query_params.get("year", "")
+    if not year_str.isdigit():
+        return Response({"error": "Provide a valid year: ?year=1994"}, status=400)
+    
+    year = int(year_str)
+    if year < 1888 or year > 2030:
+        return Response({"error": "Year out of range"}, status=400)
+    
+    data = tm_service.get_year_capsule(year)
+    return Response(data)

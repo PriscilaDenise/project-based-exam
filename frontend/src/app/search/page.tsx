@@ -77,7 +77,7 @@ function SearchContent() {
     setLoading(true);
     try {
       const data = await moviesAPI.search(q, p);
-      setResults(data.results);
+      setResults(data.results || []);
       setTotalPages(data.total_pages || 1);
       setTotalResults(data.total_results || 0);
       setPage(p);
@@ -97,7 +97,7 @@ function SearchContent() {
         case "top_rated": data = await moviesAPI.topRated(p); break;
         default: data = await moviesAPI.trending("week", p);
       }
-      setResults(data.results);
+      setResults(data.results || []);
       setTotalPages(data.total_pages || 1);
       setPage(p);
     } catch (err) {
@@ -123,7 +123,7 @@ function SearchContent() {
       if (filterLanguage) params.language = filterLanguage;
 
       const data = await moviesAPI.discover(params);
-      setResults(data.results);
+      setResults(data.results || []);
       setTotalPages(data.total_pages || 1);
       setTotalResults(data.total_results || 0);
       setPage(p);

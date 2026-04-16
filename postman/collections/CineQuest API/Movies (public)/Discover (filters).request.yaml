@@ -1,0 +1,4 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/movies/discover/?page=1&genre=28&year_from=2020&rating_min=7&sort=popularity.desc'
+order: 10000
