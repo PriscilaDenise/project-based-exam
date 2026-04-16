@@ -1,0 +1,4 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/movies/compare/?ids=550,680'
+order: 11000

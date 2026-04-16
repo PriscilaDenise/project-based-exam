@@ -1,0 +1,12 @@
+$kind: collection
+name: 'CineQuest API'
+description: 'Django REST API for CineQuest. Import **CineQuest.local.postman_environment.json**, select that environment, then run **Register** (once) and **Obtain token**. Tokens are saved automatically. Start the backend: `python manage.py runserver` (TMDB-backed routes need `TMDB_API_KEY` in `.env`).'
+variables:
+  - key: baseUrl
+    value: 'http://localhost:8000'
+  - key: access_token
+    value: ''
+  - key: refresh_token
+    value: ''
+  - key: watchlist_id
+    value: '1'

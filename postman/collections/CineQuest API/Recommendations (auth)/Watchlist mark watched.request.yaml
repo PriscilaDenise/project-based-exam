@@ -1,0 +1,9 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/recommendations/watchlist/{{watchlist_id}}/mark_watched/'
+order: 8000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'

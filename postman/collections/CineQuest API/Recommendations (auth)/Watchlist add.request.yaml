@@ -1,0 +1,45 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/recommendations/watchlist/'
+order: 7000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "movie_tmdb_id": 27205,
+      "movie_title": "Inception",
+      "poster_path": "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (![200, 201].includes(pm.response.code)) {
+        return;
+      }
+
+      const json = pm.response.json();
+
+      pm.test("Watchlist add response is a JSON object", function () {
+        pm.expect(json).to.be.an("object");
+      });
+
+      pm.test("Response contains watchlist identifier when available", function () {
+        pm.expect(json).to.satisfy(function (body) {
+          return body.id || body.watchlist_id || body.movie_tmdb_id;
+        });
+      });
+
+      const savedId = json.id || json.watchlist_id;
+      if (savedId !== undefined && savedId !== null) {
+        pm.environment.set("watchlist_id", String(savedId));
+        pm.collectionVariables.set("watchlist_id", String(savedId));
+      }

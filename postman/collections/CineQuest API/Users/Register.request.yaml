@@ -1,0 +1,47 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/users/register/'
+order: 1000
+description: >-
+  400 Bad Request here almost always means this username or email is already in the database
+  (e.g. you registered earlier). Change both fields in the JSON body, or skip Register and use
+  Obtain token if you already have that account. Profile 200 + Register 400 in the same session is normal.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "demo_user",
+      "email": "demo@example.com",
+      "password": "securepass1",
+      "password_confirm": "securepass1"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is success or already exists validation", function () {
+        pm.expect([200, 201, 400]).to.include(pm.response.code);
+      });
+
+      const json = pm.response.json();
+
+      pm.test("Response is a JSON object", function () {
+        pm.expect(json).to.be.an("object");
+      });
+
+      if (pm.response.code === 200 || pm.response.code === 201) {
+        pm.test("Successful registration returns user-identifying fields", function () {
+          pm.expect(json).to.satisfy(function (body) {
+            return body.username || body.email || body.id;
+          });
+        });
+      }
+
+      if (pm.response.code === 400) {
+        pm.test("Validation error response is present", function () {
+          pm.expect(Object.keys(json).length).to.be.greaterThan(0);
+        });
+      }

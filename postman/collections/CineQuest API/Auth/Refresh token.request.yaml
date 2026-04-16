@@ -1,0 +1,30 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/auth/token/refresh/'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refresh": "{{refresh_token}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code !== 200) {
+        return;
+      }
+
+      const json = pm.response.json();
+
+      pm.test("Response includes a new access token", function () {
+        pm.expect(json).to.have.property("access");
+        pm.expect(json.access).to.be.a("string").and.not.empty;
+      });
+
+      pm.environment.set("access_token", json.access);
+      pm.collectionVariables.set("access_token", json.access);

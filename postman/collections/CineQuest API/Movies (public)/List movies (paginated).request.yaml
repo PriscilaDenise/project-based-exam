@@ -1,0 +1,30 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/movies/list/'
+order: 1000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      const json = pm.response.json();
+
+      pm.test("Movies list response is a JSON object", function () {
+        pm.expect(json).to.be.an("object");
+      });
+
+      pm.test("Movies list contains paginated results", function () {
+        pm.expect(json).to.have.property("results");
+        pm.expect(json.results).to.be.an("array");
+      });
+
+      pm.test("Pagination metadata is present when provided", function () {
+        pm.expect(json).to.satisfy(function (body) {
+          return Object.prototype.hasOwnProperty.call(body, "count") ||
+            Object.prototype.hasOwnProperty.call(body, "next") ||
+            Object.prototype.hasOwnProperty.call(body, "previous");
+        });
+      });
