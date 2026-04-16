@@ -104,4 +104,11 @@ export interface GenrePreference {
   interaction_count: number;
 }
 
-
+export interface WatchlistItem {
+  id: number;
+  movie_tmdb_id: number;
+  movie_title: string;
+  poster_path: string;
+  watched: boolean;
+  added_at: string;
+}

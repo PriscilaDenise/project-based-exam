@@ -1,0 +1,22 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/movies/"
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    date: Tue, 14 Apr 2026 22:24:11 GMT
+    server: WSGIServer/0.2 CPython/3.9.6
+    content-type: application/json
+    vary: Accept, Cookie, origin
+    allow: GET, HEAD, OPTIONS
+    x-frame-options: DENY
+    content-length: "153"
+    x-content-type-options: nosniff
+    referrer-policy: same-origin
+    cross-origin-opener-policy: same-origin
+  body:
+    type: json
+    content: '{"list":"http://localhost:8000/api/movies/list/","genres":"http://localhost:8000/api/movies/genres/","people":"http://localhost:8000/api/movies/people/"}'
+order: 1776205502167

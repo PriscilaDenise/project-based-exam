@@ -3,44 +3,54 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Search, X, Loader2, Star, TrendingUp } from "lucide-react";
+import { Search, X, Loader2, Star, TrendingUp, Mic, MicOff } from "lucide-react";
 import { moviesAPI } from "@/lib/api";
+import { useVoiceSearch } from "@/hooks/useVoiceSearch";
+import VoiceWaves from "@/components/VoiceWaves";
 import { posterUrl } from "@/lib/utils";
 import type { MovieCompact } from "@/types/movie";
 
 interface SearchModalProps {
   open: boolean;
   onClose: () => void;
+  initialQuery?: string;
 }
 
-export default function SearchModal({ open, onClose }: SearchModalProps) {
+export default function SearchModal({ open, onClose, initialQuery = "" }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<MovieCompact[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { isListening, transcript, error, startListening, stopListening } = useVoiceSearch();
+
+  // Sync transcript to query while listening
+  useEffect(() => {
+    if (isListening && transcript) {
+      setQuery(transcript);
+    }
+  }, [transcript, isListening]);
 
   useEffect(() => {
     if (open) {
+      if (initialQuery) {
+        setQuery(initialQuery);
+      }
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setQuery("");
       setResults([]);
       setSelectedIndex(-1);
     }
-  }, [open]);
+  }, [open, initialQuery]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        if (open) {
-          onClose();
-        }
+      if (e.key === "Escape" && open) {
+        onClose();
       }
-      if (e.key === "Escape" && open) onClose();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -56,7 +66,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
       setLoading(true);
       try {
         const data = await moviesAPI.search(query);
-        setResults(data.results.slice(0, 6));
+        setResults((data.results || []).slice(0, 6));
       } catch {
         setResults([]);
       } finally {
@@ -99,7 +109,10 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[18vh]">
+    <div
+      className="fixed inset-0 z-[100] flex items-start justify-center pt-[18vh]"
+      data-voice-search-modal
+    >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-surface-0/80 backdrop-blur-sm animate-fade-in"
@@ -118,7 +131,33 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
             className="flex items-center gap-3 px-5 py-4"
             onKeyDown={handleKeyDown}
           >
-            <Search className="w-5 h-5 text-gold/40 flex-shrink-0" />
+            <div className="flex items-center gap-2">
+              <Search className="w-5 h-5 text-gold/40 flex-shrink-0" />
+              
+              {error ? (
+                <div className="group relative">
+                  <MicOff className="w-5 h-5 text-red-500/50" />
+                  <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-surface-0 border border-red-500/20 rounded-lg text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    {error}
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={isListening ? stopListening : startListening}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    isListening 
+                    ? "bg-gold text-surface-0 shadow-lg shadow-gold/20 scale-110" 
+                    : "text-gold/60 hover:text-gold hover:bg-gold/10"
+                  }`}
+                  aria-label={isListening ? "Stop listening" : "Search by voice"}
+                >
+                  <Mic className={`w-4 h-4 ${isListening ? "animate-pulse" : ""}`} />
+                </button>
+              )}
+              <VoiceWaves isActive={isListening} />
+            </div>
+
             <input
               ref={inputRef}
               type="text"
@@ -130,7 +169,11 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
               placeholder="Search movies, directors, actors..."
               className="flex-1 bg-transparent text-white placeholder:text-white/25 outline-none text-lg font-body"
             />
-            {loading && <Loader2 className="w-5 h-5 text-gold/40 animate-spin" />}
+            
+            <div className="flex items-center gap-2">
+              {loading && <Loader2 className="w-5 h-5 text-gold/40 animate-spin" />}
+            </div>
+
             <button
               type="button"
               onClick={onClose}
@@ -154,6 +197,9 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
               {results.map((movie, i) => (
                 <button
                   key={movie.id || movie.tmdb_id}
+                  type="button"
+                  data-voice-movie-result
+                  aria-label={movie.title}
                   onClick={() => handleSelect(movie.tmdb_id || movie.id)}
                   className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all text-left ${
                     i === selectedIndex

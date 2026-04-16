@@ -1,0 +1,4 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/movies/time-machine/?year=1994'
+order: 12000

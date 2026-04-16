@@ -1,0 +1,4 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/movies/top-rated/?page=1'
+order: 9000

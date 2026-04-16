@@ -18,5 +18,6 @@ urlpatterns = [
     path("moods/<str:mood_slug>/", views.mood_movies, name="mood-movies"),
     path("discover/", views.discover_filtered, name="discover-filtered"),
     path("compare/", views.compare_movies, name="compare-movies"),
+    path("time-machine/", views.time_machine, name="time-machine"),
     path("", include(router.urls)),
 ]

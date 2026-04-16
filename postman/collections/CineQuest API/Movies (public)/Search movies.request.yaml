@@ -1,0 +1,32 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/movies/search/?q=inception&page=1'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      const json = pm.response.json();
+
+      pm.test("Search response is a JSON object", function () {
+        pm.expect(json).to.be.an("object");
+      });
+
+      pm.test("Search response contains results array", function () {
+        pm.expect(json).to.have.property("results");
+        pm.expect(json.results).to.be.an("array");
+      });
+
+      pm.test("Search query returns movie-like items when results exist", function () {
+        if (json.results.length > 0) {
+          pm.expect(json.results[0]).to.satisfy(function (item) {
+            return item.title || item.name || item.id || item.tmdb_id;
+          });
+        } else {
+          pm.expect(json.results.length).to.eql(0);
+        }
+      });

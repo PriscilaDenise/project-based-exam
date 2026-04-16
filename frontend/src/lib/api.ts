@@ -106,7 +106,6 @@ export const authAPI = {
     return tokens;
   },
 
-
   register: async (
     username: string,
     email: string,
@@ -178,6 +177,9 @@ export const moviesAPI = {
 
   compare: (id1: number, id2: number) =>
     apiFetch<{ movies: any[] }>(`/movies/compare/?ids=${id1},${id2}`),
+
+  getTimeCapsule: (year: number) =>
+    apiFetch<any>(`/movies/time-machine/?year=${year}`),
 };
 
 // Genres API

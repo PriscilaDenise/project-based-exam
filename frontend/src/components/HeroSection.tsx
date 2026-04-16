@@ -141,6 +141,7 @@ export default function HeroSection({ movies }: HeroSectionProps) {
           <div className="flex items-center gap-3">
             <Link
               href={`/movie/${movie.tmdb_id || movie.id}`}
+              aria-label={movie.title}
               className="group flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-gold to-gold-dim text-surface-0 font-semibold text-sm transition-all duration-300 hover:shadow-lg hover:shadow-gold/20 hover:scale-[1.03] active:scale-[0.98]"
             >
               <Info className="w-[18px] h-[18px]" />
@@ -148,6 +149,7 @@ export default function HeroSection({ movies }: HeroSectionProps) {
             </Link>
             <Link
               href={`/movie/${movie.tmdb_id || movie.id}`}
+              aria-label={movie.title}
               className="flex items-center gap-2 px-6 py-3.5 rounded-xl glass-card text-sm font-medium text-white/80 hover:text-white transition-all duration-300 hover:scale-[1.02]"
             >
               <Play className="w-4 h-4" fill="currentColor" />

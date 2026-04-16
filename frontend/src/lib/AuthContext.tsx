@@ -9,12 +9,7 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
-  register: (
-    username: string,
-    email: string,
-    password: string,
-    passwordConfirm: string
-  ) => Promise<void>;
+  register: (username: string, email: string, password: string, passwordConfirm: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -40,6 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = useCallback(async () => {
     try {
       loadTokens();
+      if (typeof window !== "undefined" && !sessionStorage.getItem("cq_access")) {
+        setUser(null);
+        return;
+      }
       const profile = await authAPI.getProfile();
       setUser(profile);
     } catch {
@@ -58,12 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const register = useCallback(
-    async (
-      username: string,
-      email: string,
-      password: string,
-      passwordConfirm: string
-    ) => {
+    async (username: string, email: string, password: string, passwordConfirm: string) => {
       await authAPI.register(username, email, password, passwordConfirm);
       await authAPI.login(username, password);
       await refreshUser();

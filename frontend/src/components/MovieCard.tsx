@@ -31,6 +31,7 @@ export default function MovieCard({
   return (
     <Link
       href={`/movie/${tmdbId}`}
+      aria-label={movie.title}
       className={`movie-card group flex-shrink-0 ${sizeClasses[size]}`}
       style={{ animationDelay: `${index * 50}ms` }}
     >
