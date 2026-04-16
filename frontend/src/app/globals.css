@@ -175,3 +175,61 @@ body {
 .text-gold-light { color: var(--gold-light); }
 .bg-gold { background-color: var(--gold); }
 .border-gold { border-color: var(--gold); }
+
+/* --- Time Machine Era FX --- */
+
+@keyframes era-flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.85; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.era-fx-silent {
+  filter: grayscale(100%) contrast(1.2) brightness(0.9);
+  animation: era-flicker 0.15s infinite;
+}
+
+.era-fx-golden {
+  filter: sepia(0.4) contrast(1.1) brightness(1.05);
+}
+
+.era-fx-classic {
+  filter: saturate(1.4) contrast(1.1);
+}
+
+.era-fx-retro {
+  filter: sepia(0.2) saturate(1.2) contrast(1.05);
+}
+
+.era-fx-digital {
+  filter: saturate(1.3) contrast(1.1);
+}
+
+.era-scanlines {
+  position: absolute; inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 118, 0.06));
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.era-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.6) 140%);
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Voice navigation: focused movie (grid links or search modal rows) */
+main a.voice-focus-ring,
+[data-voice-search-modal] button.voice-focus-ring {
+  outline: 2px solid rgba(212, 175, 55, 0.95);
+  outline-offset: 4px;
+  border-radius: 14px;
+  position: relative;
+  z-index: 2;
+}
