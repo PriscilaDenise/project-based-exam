@@ -3,6 +3,7 @@ from typing import Optional
 from .tmdb_service import TMDBService
 
 logger = logging.getLogger(__name__)
+
 class TimeMachineService:
     """Service to generate curated cinematic 'Time Capsules' for a specific year."""
     
@@ -39,8 +40,8 @@ class TimeMachineService:
         2017: "Green Book", 2018: "Parasite", 2019: "Nomadland", 2020: "CODA",
         2021: "Everything Everywhere All at Once", 2022: "Oppenheimer"
     }
-    
-     GLOBAL_EVENTS = {
+
+    GLOBAL_EVENTS = {
         1927: ["Charles Lindbergh completes first solo flight across Atlantic", "Work begins on Mount Rushmore"],
         1939: ["World War II begins in Europe", "First commercial helicopter flight"],
         1945: ["World War II ends", "World Bank and IMF created"],
@@ -84,8 +85,8 @@ class TimeMachineService:
                 if str(year) in r.get("release_date", ""):
                     oscar_movie = r
                     break
-                
-                  # Get Icons
+        
+        # Get Icons
         icons = self._get_icons_of_year(popular_results[:5])
 
         return {
@@ -144,8 +145,8 @@ class TimeMachineService:
 
         if year in milestones:
             return milestones[year]
-        
-          # Dynamic fallback based on fetched data
+
+        # Dynamic fallback based on fetched data
         titan_title = titan.get("title") if titan else None
         critics_title = critics.get("title") if critics else None
 
@@ -169,4 +170,3 @@ class TimeMachineService:
         if titan_title:
             return f"The Modern Streaming Age. In {year}, global narratives flourished, led by major successes like '{titan_title}'."
         return f"The contemporary masterpiece era. In {year}, cinema continues to inspire across global platforms and original stories."
-
