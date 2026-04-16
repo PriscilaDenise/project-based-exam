@@ -1,22 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
   Star, Clock, Calendar, Play, ExternalLink, ArrowLeft,
   Globe, Film, Users, ThumbsUp, ThumbsDown, Bookmark,
-  BookmarkCheck, Heart, Sparkles, ChevronRight,
+  BookmarkCheck, Heart, Sparkles, ChevronRight, Eye,
 } from "lucide-react";
 import MovieCarousel from "@/components/MovieCarousel";
 import MovieCard from "@/components/MovieCard";
-import { moviesAPI } from "@/lib/api";
+import { moviesAPI, recommendationsAPI } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
 import {
   posterUrl, backdropUrl, formatRuntime, formatCurrency,
   formatDate, ratingColor,
 } from "@/lib/utils";
 import type { MovieCompact } from "@/types/movie";
+import { subscribeVoiceAction } from "@/lib/voiceCommandBus";
 
 function getLikedMovies(): any[] {
   if (typeof window === "undefined") return [];
@@ -46,7 +48,30 @@ function saveWatchlist(movies: any[]) {
   localStorage.setItem("cq_watchlist", JSON.stringify(movies));
 }
 
+/** TMDB often tags promos as Teaser/Clip; strict Trailer-only misses playable YouTube keys. */
+function pickBestYouTubeVideo(videos: any[] | undefined): { key: string; type?: string } | null {
+  if (!videos?.length) return null;
+  const yt = videos.filter((v: any) => {
+    if (!v?.key) return false;
+    const site = String(v.site || "")
+      .toLowerCase()
+      .replace(/\s/g, "");
+    return site === "youtube" || site.includes("youtube");
+  });
+  if (!yt.length) return null;
+  const byType = (t: string) => yt.find((v: any) => v.type === t);
+  return (
+    byType("Trailer") ||
+    byType("Teaser") ||
+    byType("Clip") ||
+    byType("Featurette") ||
+    byType("Behind the Scenes") ||
+    yt[0]
+  );
+}
+
 export default function MovieDetailPage() {
+  const { isAuthenticated } = useAuth();
   const params = useParams();
   const tmdbId = Number(params.id);
 
@@ -55,24 +80,87 @@ export default function MovieDetailPage() {
   const [similarMovies, setSimilarMovies] = useState<MovieCompact[]>([]);
   const [likedRecs, setLikedRecs] = useState<MovieCompact[]>([]);
   const [showTrailer, setShowTrailer] = useState(false);
+  /** Voice opens without a click gesture — browsers allow muted autoplay more reliably. */
+  const [trailerStartMuted, setTrailerStartMuted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isWatched, setIsWatched] = useState(false);
+  const [watchlistId, setWatchlistId] = useState<number | null>(null);
   const [likeCount, setLikeCount] = useState(0);
+
+  const movieRef = useRef<any>(null);
+  useEffect(() => {
+    movieRef.current = movie;
+  }, [movie]);
+
+  /** Voice bus → React state (programmatic DOM .click() is unreliable for modal + autoplay). */
+  useEffect(() => {
+    return subscribeVoiceAction((detail) => {
+      if (!detail?.type) return;
+      if (detail.type === "close-trailer") {
+        setShowTrailer(false);
+        setTrailerStartMuted(false);
+        return;
+      }
+      if (detail.type !== "play-trailer") return;
+      const m = movieRef.current;
+      if (!m) return;
+      const t = pickBestYouTubeVideo(m.videos?.results || []);
+      if (t) {
+        setTrailerStartMuted(true);
+        setShowTrailer(true);
+      }
+    });
+  }, []);
 
   // Initializing like/bookmark state
   useEffect(() => {
     if (!tmdbId) return;
+    
+    // Local state initialization (for offline/speed)
     const liked = getLikedMovies();
     const watchlist = getWatchlist();
     const likedEntry = liked.find((m: any) => m.id === tmdbId);
+    
     setIsLiked(likedEntry?.type === "like");
     setIsDisliked(likedEntry?.type === "dislike");
     setIsBookmarked(watchlist.some((m: any) => m.id === tmdbId));
     setLikeCount(liked.filter((m: any) => m.type === "like").length);
-  }, [tmdbId]);
+
+    // Server state synchronization (top priority if logged in)
+    async function syncServerState() {
+      if (!isAuthenticated) return;
+      try {
+        const [serverWatchlist, dashboardData] = await Promise.all([
+          recommendationsAPI.getWatchlist(),
+          recommendationsAPI.getDashboard()
+        ]);
+
+        const watchItem = serverWatchlist.find(item => item.movie_tmdb_id === tmdbId);
+        if (watchItem) {
+          setIsBookmarked(true);
+          setWatchlistId(watchItem.id);
+          if (watchItem.watched) setIsWatched(true);
+        } else {
+          setIsBookmarked(false);
+          setWatchlistId(null);
+        }
+
+        // Also check recent interactions for 'watched' type
+        const hasWatchedInteraction = dashboardData.recent_activity?.some(
+          (item: any) => item.movie_tmdb_id === tmdbId && item.interaction_type === "watched"
+        );
+        if (hasWatchedInteraction) setIsWatched(true);
+
+      } catch (err) {
+        console.error("Failed to sync status from server:", err);
+      }
+    }
+    syncServerState();
+  }, [tmdbId, isAuthenticated]);
 
   // Fetching movie data plus recommendations
   useEffect(() => {
@@ -124,7 +212,7 @@ export default function MovieDetailPage() {
   }
 
   // Like / Dislike / Bookmark handlers
-  const handleLike = useCallback(() => {
+  const handleLike = useCallback(async () => {
     const liked = getLikedMovies();
     const filtered = liked.filter((m: any) => m.id !== tmdbId);
 
@@ -135,22 +223,33 @@ export default function MovieDetailPage() {
       setLikeCount((c) => c - 1);
     } else {
       // Like
-      filtered.push({
+      const actionData = {
         id: tmdbId,
         title: movie?.title || "",
         poster_path: movie?.poster_path || "",
-        type: "like",
+        type: "like" as const,
         genres: (movie?.genres || []).map((g: any) => g.id),
         timestamp: Date.now(),
-      });
+      };
+      filtered.push(actionData);
       saveLikedMovies(filtered);
       setIsLiked(true);
       setIsDisliked(false);
       setLikeCount((c) => c + 1);
-    }
-  }, [tmdbId, isLiked, movie]);
 
-  const handleDislike = useCallback(() => {
+      // Track on server
+      if (isAuthenticated) {
+        recommendationsAPI.trackInteraction({
+          movie_tmdb_id: tmdbId,
+          movie_title: movie?.title || "",
+          interaction_type: "like",
+          genre_ids: (movie?.genres || []).map((g: any) => g.id),
+        }).catch(e => console.error("Server track failed:", e));
+      }
+    }
+  }, [tmdbId, isLiked, movie, isAuthenticated]);
+
+  const handleDislike = useCallback(async () => {
     const liked = getLikedMovies();
     const filtered = liked.filter((m: any) => m.id !== tmdbId);
 
@@ -169,26 +268,77 @@ export default function MovieDetailPage() {
       saveLikedMovies(filtered);
       setIsDisliked(true);
       setIsLiked(false);
-    }
-  }, [tmdbId, isDisliked, movie]);
 
-  const handleBookmark = useCallback(() => {
+      // Track on server
+      if (isAuthenticated) {
+        recommendationsAPI.trackInteraction({
+          movie_tmdb_id: tmdbId,
+          movie_title: movie?.title || "",
+          interaction_type: "dislike",
+          genre_ids: (movie?.genres || []).map((g: any) => g.id),
+        }).catch(e => console.error("Server track failed:", e));
+      }
+    }
+  }, [tmdbId, isDisliked, movie, isAuthenticated]);
+
+  const handleBookmark = useCallback(async () => {
     const watchlist = getWatchlist();
 
     if (isBookmarked) {
       saveWatchlist(watchlist.filter((m: any) => m.id !== tmdbId));
       setIsBookmarked(false);
+
+      if (isAuthenticated && watchlistId) {
+        recommendationsAPI.removeFromWatchlist(watchlistId)
+          .then(() => setWatchlistId(null))
+          .catch(e => console.error("Server watchlist remove failed:", e));
+      }
     } else {
-      watchlist.push({
+      const actionData = {
         id: tmdbId,
         title: movie?.title || "",
         poster_path: movie?.poster_path || "",
         timestamp: Date.now(),
-      });
+      };
+      watchlist.push(actionData);
       saveWatchlist(watchlist);
       setIsBookmarked(true);
+
+      if (isAuthenticated) {
+        try {
+          const res = await recommendationsAPI.addToWatchlist({
+            movie_tmdb_id: tmdbId,
+            movie_title: movie?.title || "",
+            poster_path: movie?.poster_path || "",
+          });
+          setWatchlistId(res.id);
+        } catch (e) {
+          console.error("Server watchlist add failed:", e);
+        }
+      }
     }
-  }, [tmdbId, isBookmarked, movie]);
+  }, [tmdbId, isBookmarked, movie, isAuthenticated, watchlistId]);
+
+  const handleWatched = useCallback(async () => {
+    if (isWatched) return; // Already watched
+    
+    setIsWatched(true);
+    
+    // If it's in watchlist, mark it as watched there too
+    if (watchlistId && isAuthenticated) {
+      recommendationsAPI.markWatched(watchlistId).catch(console.error);
+    }
+    
+    // Direct interaction track
+    if (isAuthenticated) {
+      recommendationsAPI.trackInteraction({
+        movie_tmdb_id: tmdbId,
+        movie_title: movie?.title || "",
+        interaction_type: "watched",
+        genre_ids: (movie?.genres || []).map((g: any) => g.id),
+      }).catch(e => console.error("Server track failed:", e));
+    }
+  }, [tmdbId, isWatched, movie, isAuthenticated, watchlistId]);
 
   // Loading state
   if (loading) {
@@ -235,7 +385,7 @@ export default function MovieDetailPage() {
   const directors = (credits.crew || []).filter((c: any) => c.job === "Director");
 
   const videos = movie.videos?.results || [];
-  const trailer = videos.find((v: any) => v.site === "YouTube" && v.type === "Trailer");
+  const trailer = pickBestYouTubeVideo(videos);
 
   const providers = movie["watch/providers"]?.results?.US || {};
   const streamProviders = providers.flatrate || [];
@@ -312,6 +462,19 @@ export default function MovieDetailPage() {
                 ) : (
                   <Bookmark className="w-4 h-4" />
                 )}
+              </button>
+
+              <button
+                onClick={handleWatched}
+                className={`group w-12 flex items-center justify-center py-3 rounded-xl border transition-all duration-300 ${
+                  isWatched
+                    ? "bg-blue-500/15 border-blue-500/30 text-blue-400"
+                    : "glass-card text-white/50 hover:text-blue-400 hover:border-blue-500/20"
+                }`}
+                title={isWatched ? "Already watched" : "Mark as watched"}
+                disabled={isWatched}
+              >
+                <Eye className={`w-4 h-4 ${isWatched ? "fill-blue-400" : ""}`} />
               </button>
             </div>
 
@@ -398,7 +561,12 @@ export default function MovieDetailPage() {
             <div className="flex flex-wrap gap-3 pt-2">
               {trailer && (
                 <button
-                  onClick={() => setShowTrailer(true)}
+                  type="button"
+                  data-voice-watch-trailer
+                  onClick={() => {
+                    setTrailerStartMuted(false);
+                    setShowTrailer(true);
+                  }}
                   className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gold to-gold-dim text-surface-0 font-semibold text-sm transition-all duration-300 hover:shadow-lg hover:shadow-gold/20 hover:scale-[1.03] active:scale-[0.98]"
                 >
                   <Play className="w-5 h-5" fill="currentColor" />
@@ -647,23 +815,32 @@ export default function MovieDetailPage() {
       {/* Trailer modal*/}
       {showTrailer && trailer && (
         <div
+          data-voice-trailer-backdrop
           className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowTrailer(false)}
+          onClick={() => {
+            setShowTrailer(false);
+            setTrailerStartMuted(false);
+          }}
         >
           <div
             className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden animate-scale-in border border-white/[0.06] shadow-2xl shadow-black/80"
             onClick={(e) => e.stopPropagation()}
           >
             <iframe
-              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`}
+              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=${trailerStartMuted ? 1 : 0}&rel=0&playsinline=1`}
               title="Movie Trailer"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               className="absolute inset-0 w-full h-full"
             />
           </div>
           <button
-            onClick={() => setShowTrailer(false)}
+            type="button"
+            data-voice-close-trailer
+            onClick={() => {
+              setShowTrailer(false);
+              setTrailerStartMuted(false);
+            }}
             className="absolute top-6 right-6 w-10 h-10 rounded-full glass flex items-center justify-center text-white/60 hover:text-white transition-colors"
           >
             ✕
