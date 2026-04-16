@@ -1,3 +1,5 @@
+import hashlib
+import json
 import logging
 from typing import Optional
 from django.conf import settings
@@ -26,7 +28,10 @@ class TMDBService:
 
     def _get(self, endpoint: str, params: Optional[dict] = None) -> dict:
         """Make Get request to TMDB with caching."""
-        cache_key = f"tmdb:{endpoint}:{params}"
+        params = params or {}
+        param_key = json.dumps(params, sort_keys=True, separators=(",", ":"))
+        param_digest = hashlib.sha256(param_key.encode()).hexdigest()[:16]
+        cache_key = f"tmdb:{endpoint}:{param_digest}"
         cached = cache.get(cache_key)
         if cached:
             return cached
@@ -53,6 +58,10 @@ class TMDBService:
             f"movie/{tmdb_id}",
             {"append_to_response": "credits,videos,recommendations,similar,watch/providers"},
         )
+
+    def get_movie_credits(self, tmdb_id: int) -> dict:
+        """getting movie cast and crew."""
+        return self._get(f"movie/{tmdb_id}/credits")
 
     def get_trending_movies(self, time_window: str = "week", page: int = 1) -> dict:
         """getting  trending movies (day or week)."""
